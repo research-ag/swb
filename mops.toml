@@ -1,9 +1,9 @@
 [package]
-name = ""
+name = "swb"
 version = "0.0.1"
-description = ""
-repository = "https://github.com/research-ag/..."
-keywords = [ ]
+description = "Sliding window buffer with random access"
+repository = "https://github.com/research-ag/swb"
+keywords = [ "buffer", "sliding", "window", "queue" ]
 license = "Apache-2.0"
 
 [dependencies]

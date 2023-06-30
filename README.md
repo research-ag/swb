@@ -1,13 +1,20 @@
-# ... for Motoko
+# Sliding window buffer for Motoko
 
 ## Overview
 
+The package provides a buffer with random access to its elements by index (like an array).
+The buffer can dynamically grow at the end (where the high indices are) by appending new elements
+and it can shrink at the beginning (where the low indices are) by deleting elements.
+When deletion happens then the indices are not re-calculated or "shifted" back to start at 0 again.
+Instead, they remain unchanged which makes the data structure a sliding window into an ever-growing buffer.
+
+
 ### Links
 
-The package is published on [MOPS](https://mops.one/...) and [GitHub](https://github.com/research-ag/...).
+The package is published on [MOPS](https://mops.one/swb) and [GitHub](https://github.com/research-ag/swb).
 Please refer to the README on GitHub where it renders properly with formulas and tables.
 
-The API documentation can be found [here](https://mops.one/.../docs/lib) on Mops.
+The API documentation can be found [here](https://mops.one/swb/docs/lib) on Mops.
 
 For updates, help, questions, feedback and other requests related to this package join us on:
 
@@ -17,6 +24,7 @@ For updates, help, questions, feedback and other requests related to this packag
 
 ### Motivation
 
+The data structure was written to use it as a base for sliding window protocols for inter-canister communication.
 ### Interface
 
 ## Usage
@@ -25,12 +33,12 @@ For updates, help, questions, feedback and other requests related to this packag
 
 You need `mops` installed. In your project directory run:
 ```
-mops add <...>
+mops add swb
 ```
 
 In the Motoko source file import the package as:
 ```
-import .. "mo:..";
+import SWB "mo:swb";
 ```
 
 ### Example
@@ -42,7 +50,7 @@ Suppose `<path-to-moc>` is the path of the `moc` binary of the appropriate versi
 
 Then run:
 ```
-git clone git@github.com:research-ag/....git
+git clone git@github.com:research-ag/swb.git
 mops install
 DFX_MOC_PATH=<path-to-moc> mops test
 ```
@@ -64,8 +72,8 @@ The benchmarking code can be found here: [canister-profiling](https://github.com
 MR Research AG, 2023
 ## Authors
 
-Main author:\
-Contributors:
+Main author: Timo Hanke
+Contributors: Andy Gura
 ## License 
 
 Apache-2.0
