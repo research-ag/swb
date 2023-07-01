@@ -26,7 +26,7 @@ module {
     var data_blocks : [var [var ?X]] = [var [var]];
     var i_block : Nat = 1;
     var i_element : Nat = 0;
-    var start : Nat = 0;
+    var start_ : Nat = 0;
 
     public func size<X>() : Nat {
       let d = Nat32(i_block);
@@ -106,23 +106,26 @@ module {
     // TODO: This can be made more sophisticated
     // * We can count in (block, element) and avoid calling locate every time
     // * We can delete the datablocks that have become empty
-    public func delete<X>(n : Nat) {
-      let end = start + n;
-      if (end > size()) Prim.trap("index out of bounds in delete");
-      var pos = start;
+    public func delete(n : Nat) = deleteTo(start_ + n);
+
+    // delete to before pos `end` (i.e. excluding `end`)
+    // if end <= start_ then nothing gets deleted
+    public func deleteTo(end : Nat) {
+      if (end > size()) Prim.trap("index out of bounds in deleteTo");
+      var pos = start_;
       while (pos < end) {
         let (a, b) = locate(pos);
         data_blocks[a][b] := null;
         pos += 1;
       };
-      start := end;
+      start_ := end;
     };
 
     // number of non-deleted entries
-    public func len<X>() : Nat = size() - start; 
+    public func len() : Nat = size() - start_; 
 
     // number of deleted entries
-    public func deletions<X>() : Nat = start; 
+    public func start() : Nat = start_; 
   };
 
   /// Sliding window buffer
@@ -168,7 +171,7 @@ module {
     func rotateIfNeeded() {
       let size = new.size();
       let s = Nat32(size);
-      let d = Nat32(new.deletions());
+      let d = Nat32(new.start());
       let bits = 32 - leadingZeros(s);
       let limit = s >> (bits >> 1);
       if (d > limit) {
@@ -181,32 +184,28 @@ module {
 
     /// Delete n elements from the beginning.
     /// Traps if less than n elements are available.
-    public func delete(n : Nat) {
-      var ctr = n;
-      let end = offset() + ctr;
-      if (end > size()) Prim.trap("index out of bounds in SlidingWindowBuffer.delete");
-      switch (old) {
-        case (?vec) {
-          if (ctr < vec.len()) {
-            vec.delete(ctr);
-            return;
-          } else {
-            ctr := ctr - vec.len();
-            old := null;
-          };
-        };
-        case (null) {};
+    public func delete(n : Nat) = deleteTo(offset() + n);
+
+    public func deleteTo(end : Nat) {
+      if (end > size()) Prim.trap("index out of bounds in SlidingWindowBuffer.deleteTo");
+      if (end >= i_new) {
+        old := null;
+        new.deleteTo(end - i_new : Nat);
+        rotateIfNeeded();
+      } else if (end >= i_old) {
+        switch (old) {
+          case (?vec) { vec.deleteTo(end - i_old : Nat) };
+          case (_) { Prim.trap("cannot happen") };
+        }
       };
-      new.delete(ctr);
-      rotateIfNeeded();
     };
 
     /// The offset of the sliding window.
     /// If the window is non-empty then this equals the index of the first
     /// element in the window.
     public func offset() : Nat = switch (old) {
-      case (?vec) { i_old + vec.deletions() };
-      case (null) { i_new + new.deletions() };
+      case (?vec) { i_old + vec.start() };
+      case (null) { i_new + new.start() };
     };
 
     /// The size of the whole virtual buffer including deletions.
