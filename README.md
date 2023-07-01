@@ -2,11 +2,11 @@
 
 ## Overview
 
-The package provides a buffer with random access to its elements by index (like an array).
+The package provides a buffer with random access to its elements by index like an array.
 The buffer can dynamically grow at the end (where the high indices are) by appending new elements
 and it can shrink at the beginning (where the low indices are) by deleting elements.
 When deletion happens then the indices are not re-calculated or "shifted" back to start at 0 again.
-Instead, they remain unchanged which makes the data structure a sliding window into an ever-growing buffer.
+Instead, they remain unchanged which makes the data structure a sliding window into a virtual ever-growing buffer.
 
 
 ### Links
@@ -55,24 +55,12 @@ mops install
 DFX_MOC_PATH=<path-to-moc> mops test
 ```
 
-## Benchmarks
-
-The benchmarking code can be found here: [canister-profiling](https://github.com/research-ag/canister-profiling)
-
-### Time
-
-### Memory
-
-## Design
-
-## Implementation notes
-
 ## Copyright
 
 MR Research AG, 2023
 ## Authors
 
-Main author: Timo Hanke
+Main author: Timo Hanke\
 Contributors: Andy Gura
 ## License 
 
