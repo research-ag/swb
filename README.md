@@ -2,12 +2,11 @@
 
 ## Overview
 
-The package provides a buffer with random access to its elements by index (like an array).
+The package provides a buffer with random access to its elements by index like an array.
 The buffer can dynamically grow at the end (where the high indices are) by appending new elements
 and it can shrink at the beginning (where the low indices are) by deleting elements.
 When deletion happens then the indices are not re-calculated or "shifted" back to start at 0 again.
-Instead, they remain unchanged which makes the data structure a sliding window into an ever-growing buffer.
-
+Instead, they remain unchanged which makes the data structure a sliding window into a virtual ever-growing buffer.
 
 ### Links
 
@@ -43,6 +42,28 @@ import SWB "mo:swb";
 
 ### Example
 
+```
+import SWB "mo:swb";
+
+let buf = SWB.SlidingWindowBuffer<Text>();
+buf.add("a");
+buf.add("b");
+buf.add("c");
+
+buf.getOpt(0) // -> ?"a"
+buf.getOpt(1) // -> ?"b"
+buf.start() // -> 0
+buf.end() // -> 3
+buf.len() // -> 3
+
+buf.deleteTo(1);
+buf.getOpt(0) // -> null
+buf.getOpt(1) // -> ?"b"
+buf.start() // -> 1
+buf.end() // -> 3
+buf.len() // -> 2
+```
+
 ### Build & test
 
 We need up-to-date versions of `node`, `moc` and `mops` installed.
@@ -55,24 +76,22 @@ mops install
 DFX_MOC_PATH=<path-to-moc> mops test
 ```
 
-## Benchmarks
+## Benchmark
 
-The benchmarking code can be found here: [canister-profiling](https://github.com/research-ag/canister-profiling)
+We measured the number of instructions for the `add`, `delete and `getOpt` operations as follows (compared to a plain Vector):
 
-### Time
-
-### Memory
-
-## Design
-
-## Implementation notes
+|method|swb|vector|
+|---|---|---|
+|add|398|291|
+|delete|160|-|
+|getOpt|332|230|
 
 ## Copyright
 
 MR Research AG, 2023
 ## Authors
 
-Main author: Timo Hanke
+Main author: Timo Hanke\
 Contributors: Andy Gura
 ## License 
 

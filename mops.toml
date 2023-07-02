@@ -1,6 +1,6 @@
 [package]
 name = "swb"
-version = "0.0.1"
+version = "1.0.0"
 description = "Sliding window buffer with random access"
 repository = "https://github.com/research-ag/swb"
 keywords = [ "buffer", "sliding", "window", "queue" ]
