@@ -184,17 +184,17 @@ module {
 
     /// Delete n elements from the beginning.
     /// Traps if less than n elements are available.
-    public func delete(n : Nat) = deleteTo(offset() + n);
+    public func delete(n : Nat) = deleteTo(start() + n);
 
-    public func deleteTo(end : Nat) {
-      if (end > size()) Prim.trap("index out of bounds in SlidingWindowBuffer.deleteTo");
-      if (end >= i_new) {
+    public func deleteTo(end_ : Nat) {
+      if (end_ > end()) Prim.trap("index out of bounds in SlidingWindowBuffer.deleteTo");
+      if (end_ >= i_new) {
         old := null;
-        new.deleteTo(end - i_new : Nat);
+        new.deleteTo(end_ - i_new : Nat);
         rotateIfNeeded();
-      } else if (end >= i_old) {
+      } else if (end_ >= i_old) {
         switch (old) {
-          case (?vec) { vec.deleteTo(end - i_old : Nat) };
+          case (?vec) { vec.deleteTo(end_ - i_old : Nat) };
           case (_) { Prim.trap("cannot happen") };
         }
       };
