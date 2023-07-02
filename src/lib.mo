@@ -103,13 +103,13 @@ module {
       };
     };
 
-    // TODO: This can be made more sophisticated
-    // * We can count in (block, element) and avoid calling locate every time
-    // * We can delete the datablocks that have become empty
     public func delete(n : Nat) = deleteTo(start_ + n);
 
-    // delete to before pos `end` (i.e. excluding `end`)
+    // delete up to but excluding position `end`
     // if end <= start_ then nothing gets deleted
+    // TODO: This can be made more sophisticated, we can improve:
+    // * time: avoid calling locate, increment (block, element) directly 
+    // * memory: delete the datablocks that have become empty
     public func deleteTo(end : Nat) {
       if (end > size()) Prim.trap("index out of bounds in deleteTo");
       var pos = start_;
@@ -200,20 +200,22 @@ module {
       };
     };
 
-    /// The offset of the sliding window.
+    /// The starting position of the sliding window.
     /// If the window is non-empty then this equals the index of the first
     /// element in the window.
-    public func offset() : Nat = switch (old) {
+    public func start() : Nat = switch (old) {
       case (?vec) { i_old + vec.start() };
       case (null) { i_new + new.start() };
     };
 
-    /// The size of the whole virtual buffer including deletions.
-    /// This equals the index of the next element that would be added.
-    public func size() : Nat = i_new + new.size();
+    /// The ending position (exclusive) of the sliding window
+    /// = the index of the next element that would be added
+    /// = the total number of additions that have ever been made
+    /// = the size of the whole virtual buffer including deletions
+    public func end() : Nat = i_new + new.size();
 
     /// The length of the window, i.e. the number of elements that are actually
     /// available to get.
-    public func len() : Nat = size() - offset();
+    public func len() : Nat = end() - start();
   };
 };
