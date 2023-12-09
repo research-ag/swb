@@ -29,7 +29,7 @@ assert buf.getOpt(0) == ?"a";
 assert buf.getOpt(2) == ?"c";
 assert buf.getOpt(5) == ?"f";
 
-// test deletion
+// test delete
 buf.delete(1);
 assert buf.getOpt(0) == null;
 assert buf.getOpt(1) == ?"b";
@@ -42,6 +42,17 @@ buf.delete(2);
 assert buf.getOpt(1) == null;
 assert buf.getOpt(2) == null;
 assert buf.getOpt(3) == ?"d";
+assert buf.end() == 6;
+assert buf.len() == 3;
+assert buf.start() == 3;
+
+// test deleteTo
+buf.deleteTo(1); // pos < start (nothing deleted)
+assert buf.end() == 6;
+assert buf.len() == 3;
+assert buf.start() == 3;
+
+buf.deleteTo(3); // pos == start (nothing deleted)
 assert buf.end() == 6;
 assert buf.len() == 3;
 assert buf.start() == 3;

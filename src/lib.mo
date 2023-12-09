@@ -112,6 +112,7 @@ module {
     // * memory: delete the datablocks that have become empty
     public func deleteTo(end : Nat) {
       if (end > size()) Prim.trap("index out of bounds in deleteTo");
+      if (end <= start_) return;
       var pos = start_;
       while (pos < end) {
         let (a, b) = locate(pos);

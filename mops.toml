@@ -1,13 +1,13 @@
 [package]
 name = "swb"
-version = "1.0.0"
+version = "1.0.1"
 description = "Sliding window buffer with random access"
 repository = "https://github.com/research-ag/swb"
 keywords = [ "buffer", "sliding", "window", "queue" ]
 license = "Apache-2.0"
 
 [dependencies]
-base = "0.9.3"
+base = "0.10.2"
 
 [dev-dependencies]
-test = "1.0.1"
+test = "1.2.0"
