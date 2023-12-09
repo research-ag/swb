@@ -1,3 +1,6 @@
+[![mops](https://oknww-riaaa-aaaam-qaf6a-cai.raw.ic0.app/badge/mops/swb)](https://mops.one/swb)
+[![documentation](https://oknww-riaaa-aaaam-qaf6a-cai.raw.ic0.app/badge/documentation/swb)](https://mops.one/swb/docs)
+
 # Sliding window buffer for Motoko
 
 ## Overview
