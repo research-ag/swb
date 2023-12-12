@@ -1,12 +1,13 @@
 /// SlidingWindowBuffer
 ///
 /// Copyright: 2023 MR Research AG
-/// Main author: Timo Hanke (timohanke) 
-/// Contributors: Andy Gura (AndyGura) 
+/// Main author: Timo Hanke (timohanke)
+/// Contributors: Andy Gura (AndyGura)
 
 import Prim "mo:⛔";
 import { bitcountLeadingZero = leadingZeros; fromNat = Nat32; toNat = Nat } "mo:base/Nat32";
 import Array "mo:base/Array";
+import Option "mo:base/Option";
 
 module {
   // Deletable vector
@@ -14,19 +15,40 @@ module {
   // This data structure starts with a small subset of the Vector data structure
   // from https://mops.one/vector. Only the code for `add`, `getOpt` and `size`
   // is present here.
-  // 
+  //
   // Then we add a `delete` function which deleted from the beginning. It does
   // so not by shrinking the Vector but simply by overwriting the deleted
   // entries with `null`.
-  // 
+  //
   // Deletion will leave overhead that cannot be freed. But this problem will be
   // mitigated at the next level in the code that uses this Vector (in the
   // SlidingWindowBuffer class).
+  type VectorStableData<X> = {
+    data_blocks : [var [var ?X]];
+    i_block : Nat;
+    i_element : Nat;
+    start_ : Nat;
+  };
+
   class Vector<X>() {
     var data_blocks : [var [var ?X]] = [var [var]];
     var i_block : Nat = 1;
     var i_element : Nat = 0;
     var start_ : Nat = 0;
+
+    public func share() : VectorStableData<X> = {
+      data_blocks = data_blocks;
+      i_block = i_block;
+      i_element = i_element;
+      start_ = start_;
+    };
+
+    public func unshare(data : VectorStableData<X>) {
+      data_blocks := data.data_blocks;
+      i_block := data.i_block;
+      i_element := data.i_element;
+      start_ := data.start_;
+    };
 
     public func size<X>() : Nat {
       let d = Nat32(i_block);
@@ -108,7 +130,7 @@ module {
     // delete up to but excluding position `end`
     // if end <= start_ then nothing gets deleted
     // TODO: This can be made more sophisticated, we can improve:
-    // * time: avoid calling locate, increment (block, element) directly 
+    // * time: avoid calling locate, increment (block, element) directly
     // * memory: delete the datablocks that have become empty
     public func deleteTo(end : Nat) {
       if (end > size()) Prim.trap("index out of bounds in deleteTo");
@@ -123,10 +145,10 @@ module {
     };
 
     // number of non-deleted entries
-    public func len() : Nat = size() - start_; 
+    public func len() : Nat = size() - start_;
 
     // number of deleted entries
-    public func start() : Nat = start_; 
+    public func start() : Nat = start_;
   };
 
   /// Sliding window buffer
@@ -146,12 +168,39 @@ module {
   ///
   /// Only the waste in `new` is limited to sqrt(n). The waste in `old` is not limited.
   /// Hence, the largest waste occurs if we do n additions first, then n deletions.
-  public class SlidingWindowBuffer<X>() {
+  public type StableData<X> = {
+    old : ?VectorStableData<X>;
+    new : VectorStableData<X>;
+    i_old : Nat;
+    i_new : Nat;
+  };
 
+  public class SlidingWindowBuffer<X>() {
     var old : ?Vector<X> = null;
     var new : Vector<X> = Vector<X>();
     var i_old = 0; // offset of old
     var i_new = 0; // offset of new
+
+    public func share() : StableData<X> = {
+      old = Option.map(old, func(o : Vector<X>) : VectorStableData<X> = o.share());
+      new = new.share();
+      i_old = i_old;
+      i_new = i_new;
+    };
+
+    public func unshare(data : StableData<X>) {
+      switch (data.old) {
+        case (null) {};
+        case (?o) {
+          let v = Vector<X>();
+          v.unshare(o);
+          old := ?v;
+        };
+      };
+      new.unshare(data.new);
+      i_old := data.i_old;
+      i_new := data.i_new;
+    };
 
     /// Add an element to the end
     public func add(x : X) : Nat {
@@ -197,7 +246,7 @@ module {
         switch (old) {
           case (?vec) { vec.deleteTo(end_ - i_old : Nat) };
           case (_) { Prim.trap("cannot happen") };
-        }
+        };
       };
     };
 
