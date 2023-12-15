@@ -2,7 +2,7 @@
 ///
 /// Copyright: 2023 MR Research AG
 /// Main author: Timo Hanke (timohanke)
-/// Contributors: Andy Gura (AndyGura)
+/// Contributors: Andy Gura (AndyGura), Andrii Stepanov (AStepanov25)
 
 import Prim "mo:⛔";
 import { bitcountLeadingZero = leadingZeros; fromNat = Nat32; toNat = Nat } "mo:base/Nat32";
@@ -151,6 +151,14 @@ module {
     public func start() : Nat = start_;
   };
 
+  /// Stable data for a sliding window buffer
+  public type StableData<X> = {
+    old : ?VectorStableData<X>;
+    new : VectorStableData<X>;
+    i_old : Nat;
+    i_new : Nat;
+  };
+
   /// Sliding window buffer
   ///
   /// A linear buffer with random access where we can add at end and delete from
@@ -168,13 +176,6 @@ module {
   ///
   /// Only the waste in `new` is limited to sqrt(n). The waste in `old` is not limited.
   /// Hence, the largest waste occurs if we do n additions first, then n deletions.
-  public type StableData<X> = {
-    old : ?VectorStableData<X>;
-    new : VectorStableData<X>;
-    i_old : Nat;
-    i_new : Nat;
-  };
-
   public class SlidingWindowBuffer<X>() {
     var old : ?Vector<X> = null;
     var new : Vector<X> = Vector<X>();

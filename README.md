@@ -95,7 +95,7 @@ MR Research AG, 2023
 ## Authors
 
 Main author: Timo Hanke\
-Contributors: Andy Gura
+Contributors: Andy Gura, Andrii Stepanov
 ## License 
 
 Apache-2.0

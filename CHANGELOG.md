@@ -1,3 +1,7 @@
+## 1.1.0
+
+- Added `share/unshare()` interface to the class
+
 ## 1.0.1
 
 - Fixed a bug in `deleteTo(pos)` when `pos < start`
