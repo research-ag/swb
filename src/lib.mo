@@ -227,8 +227,9 @@ module {
       let limit = s >> (bits >> 1);
       if (d > limit) {
         old := ?new;
+        i_old := i_new;
         new := Vector<X>();
-        i_new := i_old + size;
+        i_new += size;
       };
     };
 
@@ -239,15 +240,16 @@ module {
     public func deleteTo(end_ : Nat) {
       if (end_ > end()) Prim.trap("index out of bounds in SlidingWindowBuffer.deleteTo");
       if (end_ >= i_new) {
-        old := null;
-        i_old := i_new;
         new.deleteTo(end_ - i_new : Nat);
         rotateIfNeeded();
-      } else if (end_ >= i_old) {
-        switch (old) {
-          case (?vec) { vec.deleteTo(end_ - i_old : Nat) };
-          case (_) { Prim.trap("cannot happen") };
+        // free old is possible
+        if (end_ >= i_new) {
+          old := null;
+          i_old := i_new;
         };
+      } else if (end_ >= i_old) {
+        let ?vec = old else Prim.trap("cannot happen");
+        vec.deleteTo(end_ - i_old : Nat);
       };
     };
 

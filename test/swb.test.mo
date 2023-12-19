@@ -124,7 +124,7 @@ do {
   for (i in Iter.range(1, N)) {
     ignore buf.add(i);
   };
-  buf.delete(N); // this will cause rotation if N >= 2
+  buf.delete(N); // this will cause rotation if N >= 2, set old to null
   assert buf.getOpt(0) == null;
   buf.deleteTo(N); // this will set old to null
   assert buf.getOpt(0) == null;
