@@ -116,3 +116,19 @@ do {
     assert buf1.getOpt(i) == (if (i < 50) { null } else { ?i });
   };
 };
+
+// Test access and deletion after rotation
+do {
+  let buf = SWB.SlidingWindowBuffer<Nat>();
+  let N = 2;
+  for (i in Iter.range(1, N)) {
+    ignore buf.add(i);
+  };
+  buf.delete(N); // this will cause rotation if N >= 2
+  assert buf.getOpt(0) == null;
+  buf.deleteTo(N); // this will set old to null
+  assert buf.getOpt(0) == null;
+  buf.deleteTo(0);
+  buf.deleteTo(1);
+  buf.deleteTo(2);
+};
