@@ -227,7 +227,6 @@ module {
       let limit = s >> (bits >> 1);
       if (d > limit) {
         old := ?new;
-        i_old := i_new;
         new := Vector<X>();
         i_new := i_old + size;
       };
@@ -241,6 +240,7 @@ module {
       if (end_ > end()) Prim.trap("index out of bounds in SlidingWindowBuffer.deleteTo");
       if (end_ >= i_new) {
         old := null;
+        i_old := i_new;
         new.deleteTo(end_ - i_new : Nat);
         rotateIfNeeded();
       } else if (end_ >= i_old) {
