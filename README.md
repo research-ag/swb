@@ -70,24 +70,29 @@ buf.len() // -> 2
 ### Build & test
 
 We need up-to-date versions of `node`, `moc` and `mops` installed.
-Suppose `<path-to-moc>` is the path of the `moc` binary of the appropriate version.
-
 Then run:
 ```
 git clone git@github.com:research-ag/swb.git
 mops install
-DFX_MOC_PATH=<path-to-moc> mops test
+mops test
 ```
+
+To run with a specific version of `moc` you can:
+
+* run `mocv` to select the version beforehand, or
+* use  `DFX_MOC_PATH=<path-to-moc> mops test`.
 
 ## Benchmark
 
-We measured the number of instructions for the `add`, `delete and `getOpt` operations as follows (compared to a plain Vector):
+We measured the number of instructions for the `add`, `delete` and `getOpt` operations as follows (compared to a plain Vector):
 
 |method|swb|vector|
 |---|---|---|
-|add|398|291|
-|delete|160|-|
-|getOpt|332|230|
+|add|486|330|
+|delete|176|-|
+|getOpt|405|261|
+
+The measurement was done with `dfx 0.15.2`, `moc 0.10.2` and with the `"optimize" : "cycles"` option in dfx.json.
 
 ## Copyright
 
