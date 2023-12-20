@@ -1,3 +1,7 @@
+## 1.1.1
+
+- Fixed a bug that can cause a trap when attempting to access an already deleted position
+
 ## 1.1.0
 
 - Added `share/unshare()` interface to the class
