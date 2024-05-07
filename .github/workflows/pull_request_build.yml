@@ -3,34 +3,19 @@ on:
   pull_request:
     types: [synchronize, opened, reopened, ready_for_review, unlabeled]
 
-env:
-  mops_version: latest
-  moc_version: 0.10.2
-
 jobs:
   build:
     runs-on: ubuntu-22.04
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v4
+      - uses: ZenVoich/setup-mops@v1.2.0
 
-      - name: Make bin directory
-        run: mkdir -p /home/runner/bin
+      - name: Make sure moc is installed
+        run: mops toolchain bin moc || mops toolchain use moc latest
 
-      - name: Install Motoko binaries
-        run: |
-          wget https://github.com/dfinity/motoko/releases/download/${{ env.moc_version }}/motoko-Linux-x86_64-${{ env.moc_version }}.tar.gz
-          tar -xzf motoko-Linux-x86_64-${{ env.moc_version }}.tar.gz -C /home/runner/bin
-          echo "/home/runner/bin" >> $GITHUB_PATH
+      - name: Show mops version
+        run: mops -v
 
-      - name: Install mops
-        run: |          
-          npm i -g ic-mops@${{ env.mops_version }}
-
-      - name: Install mops packages
-        run: mops install
-  
-      - name: Run test
-        run: DFX_MOC_PATH=/home/runner/bin/moc mops test
-
+      - name: Run mops test
+        run: mops test

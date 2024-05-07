@@ -1,9 +1,9 @@
 # lib
 SlidingWindowBuffer
 
-Copyright: 2023 MR Research AG
-Main author: Timo Hanke (timohanke) 
-Contributors: Andy Gura (AndyGura) 
+Copyright: 2023 MR Research AG  
+Main author: Timo Hanke (timohanke)  
+Contributors: Andy Gura (AndyGura)  
 
 ## Class `SlidingWindowBuffer<X>`
 
