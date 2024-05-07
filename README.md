@@ -69,7 +69,7 @@ buf.len() // -> 2
 
 ### Build & test
 
-We need up-to-date versions of `node`, `moc` and `mops` installed.
+We need up-to-date versions of `node` and `mops` installed.
 Then run:
 ```
 git clone git@github.com:research-ag/swb.git
@@ -77,10 +77,7 @@ mops install
 mops test
 ```
 
-To run with a specific version of `moc` you can:
-
-* run `mocv` to select the version beforehand, or
-* use  `DFX_MOC_PATH=<path-to-moc> mops test`.
+To run with a specific version of `moc` you can edit `mops.toml`.
 
 ## Benchmark
 
@@ -88,15 +85,15 @@ We measured the number of instructions for the `add`, `delete` and `getOpt` oper
 
 |method|swb|vector|
 |---|---|---|
-|add|486|330|
+|add|492|336|
 |delete|176|-|
 |getOpt|405|261|
 
-The measurement was done with `dfx 0.15.2`, `moc 0.10.2` and with the `"optimize" : "cycles"` option in dfx.json.
+The measurement was done with `dfx 0.19.0`, `moc 0.11.1` and with the `"optimize" : "cycles"` option in dfx.json.
 
 ## Copyright
 
-MR Research AG, 2023
+MR Research AG, 2023-2024
 ## Authors
 
 Main author: Timo Hanke\

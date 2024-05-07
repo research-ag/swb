@@ -1,10 +1,10 @@
 /// SlidingWindowBuffer
 ///
-/// Copyright: 2023 MR Research AG
+/// Copyright: 2023-2024 MR Research AG
 /// Main author: Timo Hanke (timohanke)
 /// Contributors: Andy Gura (AndyGura), Andrii Stepanov (AStepanov25)
 
-import Prim "mo:⛔";
+import Prim "mo:prim";
 import { bitcountLeadingZero = leadingZeros; fromNat = Nat32; toNat = Nat } "mo:base/Nat32";
 import Array "mo:base/Array";
 import Option "mo:base/Option";

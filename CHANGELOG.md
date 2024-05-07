@@ -1,3 +1,8 @@
+## 1.2.0
+
+- bump all dependencies
+- base dependency is 0.11.1
+
 ## 1.1.1
 
 - Fixed a bug that can cause a trap when attempting to access an already deleted position
