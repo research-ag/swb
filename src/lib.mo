@@ -5,9 +5,9 @@
 /// Contributors: Andy Gura (AndyGura), Andrii Stepanov (AStepanov25)
 
 import Prim "mo:prim";
-import { bitcountLeadingZero = leadingZeros; fromNat = Nat32; toNat = Nat } "mo:base/Nat32";
-import Array "mo:base/Array";
-import Option "mo:base/Option";
+import { bitcountLeadingZero = leadingZeros; fromNat = Nat32; toNat = Nat } "mo:core/Nat32";
+import Option "mo:core/Option";
+import VarArray "mo:core/VarArray";
 
 module {
   // Deletable vector
@@ -70,7 +70,7 @@ module {
 
     func grow_index_block_if_needed() {
       if (data_blocks.size() == i_block) {
-        let new_blocks = Array.init<[var ?X]>(new_index_block_length(Nat32(i_block)), [var]);
+        let new_blocks = VarArray.repeat<[var ?X]>([var], new_index_block_length(Nat32(i_block)));
         var i = 0;
         while (i < i_block) {
           new_blocks[i] := data_blocks[i];
@@ -85,9 +85,9 @@ module {
         grow_index_block_if_needed();
 
         if (data_blocks[i_block].size() == 0) {
-          data_blocks[i_block] := Array.init<?X>(
-            data_block_size(i_block),
+          data_blocks[i_block] := VarArray.repeat<?X>(
             null,
+            data_block_size(i_block),
           );
         };
       };
