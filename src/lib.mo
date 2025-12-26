@@ -5,9 +5,9 @@
 /// Contributors: Andy Gura (AndyGura), Andrii Stepanov (AStepanov25)
 
 import Prim "mo:prim";
-import { bitcountLeadingZero = leadingZeros; fromNat = Nat32; toNat = Nat } "mo:base/Nat32";
-import Array "mo:base/Array";
-import Option "mo:base/Option";
+import { bitcountLeadingZero = leadingZeros; fromNat = nat32; toNat = nat } "mo:core/Nat32";
+import Option "mo:core/Option";
+import VarArray "mo:core/VarArray";
 
 module {
   // Deletable vector
@@ -51,26 +51,26 @@ module {
     };
 
     public func size<X>() : Nat {
-      let d = Nat32(i_block);
-      let i = Nat32(i_element);
+      let d = nat32(i_block);
+      let i = nat32(i_element);
       let lz = leadingZeros(d / 3);
-      Nat((d -% (1 <>> lz)) <>> lz +% i);
+      nat((d -% (1 <>> lz)) <>> lz +% i);
     };
 
     func data_block_size(i_block : Nat) : Nat {
-      Nat(1 <>> leadingZeros(Nat32(i_block) / 3));
+      nat(1 <>> leadingZeros(nat32(i_block) / 3));
     };
 
     func new_index_block_length(i_block : Nat32) : Nat {
       if (i_block <= 1) 2 else {
         let s = 30 - leadingZeros(i_block);
-        Nat(((i_block >> s) +% 1) << s);
+        nat(((i_block >> s) +% 1) << s);
       };
     };
 
     func grow_index_block_if_needed() {
       if (data_blocks.size() == i_block) {
-        let new_blocks = Array.init<[var ?X]>(new_index_block_length(Nat32(i_block)), [var]);
+        let new_blocks = VarArray.repeat<[var ?X]>([var], new_index_block_length(nat32(i_block)));
         var i = 0;
         while (i < i_block) {
           new_blocks[i] := data_blocks[i];
@@ -85,9 +85,9 @@ module {
         grow_index_block_if_needed();
 
         if (data_blocks[i_block].size() == 0) {
-          data_blocks[i_block] := Array.init<?X>(
-            data_block_size(i_block),
+          data_blocks[i_block] := VarArray.repeat<?X>(
             null,
+            data_block_size(i_block),
           );
         };
       };
@@ -106,13 +106,13 @@ module {
     };
 
     func locate(index : Nat) : (Nat, Nat) {
-      let i = Nat32(index);
+      let i = nat32(index);
       let lz = leadingZeros(i);
       let lz2 = lz >> 1;
       if (lz & 1 == 0) {
-        (Nat(((i << lz2) >> 16) ^ (0x10000 >> lz2)), Nat(i & (0xFFFF >> lz2)));
+        (nat(((i << lz2) >> 16) ^ (0x10000 >> lz2)), nat(i & (0xFFFF >> lz2)));
       } else {
-        (Nat(((i << lz2) >> 15) ^ (0x18000 >> lz2)), Nat(i & (0x7FFF >> lz2)));
+        (nat(((i << lz2) >> 15) ^ (0x18000 >> lz2)), nat(i & (0x7FFF >> lz2)));
       };
     };
 
@@ -221,8 +221,8 @@ module {
 
     func rotateIfNeeded() {
       let size = new.size();
-      let s = Nat32(size);
-      let d = Nat32(new.start());
+      let s = nat32(size);
+      let d = nat32(new.start());
       let bits = 32 - leadingZeros(s);
       let limit = s >> (bits >> 1);
       if (d > limit) {

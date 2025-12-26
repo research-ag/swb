@@ -1,5 +1,5 @@
 import SWB "../src/lib";
-import Iter "mo:base/Iter";
+import Nat "mo:core/Nat";
 
 do {
   let buf = SWB.SlidingWindowBuffer<Text>();
@@ -75,7 +75,7 @@ do {
   assert buf.start() == 4;
 
   // test add many values
-  for (i in Iter.range(1, 10000)) {
+  for (i in Nat.range(1, 10000 + 1)) {
     ignore buf.add("test");
   };
   assert buf.getOpt(7) == ?"test";
@@ -103,16 +103,16 @@ do {
 // Test share/unshare
 do {
   let buf = SWB.SlidingWindowBuffer<Nat>();
-  for (i in Iter.range(0, 99)) {
+  for (i in Nat.range(0, 100)) {
     ignore buf.add(i);
   };
   buf.delete(50);
-  for (i in Iter.range(0, 99)) {
+  for (i in Nat.range(0, 100)) {
     assert buf.getOpt(i) == (if (i < 50) { null } else { ?i });
   };
   let buf1 = SWB.SlidingWindowBuffer<Nat>();
   buf1.unshare(buf.share());
-  for (i in Iter.range(0, 99)) {
+  for (i in Nat.range(0, 100)) {
     assert buf1.getOpt(i) == (if (i < 50) { null } else { ?i });
   };
 };
@@ -121,7 +121,7 @@ do {
 do {
   let buf = SWB.SlidingWindowBuffer<Nat>();
   let N = 2;
-  for (i in Iter.range(1, N)) {
+  for (i in Nat.range(1, N + 1)) {
     ignore buf.add(i);
   };
   buf.delete(N); // this will cause rotation if N >= 2, set old to null

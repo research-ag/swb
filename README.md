@@ -27,6 +27,7 @@ For updates, help, questions, feedback and other requests related to this packag
 ### Motivation
 
 The data structure was written to use it as a base for sliding window protocols for inter-canister communication.
+
 ### Interface
 
 ## Usage
@@ -39,13 +40,14 @@ mops add swb
 ```
 
 In the Motoko source file import the package as:
-```
+
+```motoko
 import SWB "mo:swb";
 ```
 
 ### Example
 
-```
+```motoko
 import SWB "mo:swb";
 
 let buf = SWB.SlidingWindowBuffer<Text>();
@@ -93,11 +95,14 @@ The measurement was done with `dfx 0.19.0`, `moc 0.11.1` and with the `"optimize
 
 ## Copyright
 
-MR Research AG, 2023-2024
+MR Research AG, 2023 - 2025
+
 ## Authors
 
-Main author: Timo Hanke\
-Contributors: Andy Gura, Andrii Stepanov
+Main author: Timo Hanke (timohanke)
+
+Contributors: Andy Gura (andygura), Andrii Stepanov (AStepanov25)
+
 ## License 
 
 Apache-2.0
