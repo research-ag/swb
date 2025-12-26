@@ -1,3 +1,7 @@
+## 1.2.1
+
+- switch base dependency to core
+
 ## 1.2.0
 
 - bump all dependencies
