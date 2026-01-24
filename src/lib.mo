@@ -182,6 +182,7 @@ module {
     var i_old = 0; // offset of old
     var i_new = 0; // offset of new
 
+    /// Reconstruct class from static data
     public func share() : StableData<X> = {
       old = Option.map(old, func(o : Vector<X>) : VectorStableData<X> = o.share());
       new = new.share();
@@ -189,6 +190,7 @@ module {
       i_new = i_new;
     };
 
+    /// Convert class to static data
     public func unshare(data : StableData<X>) {
       switch (data.old) {
         case (null) {};
@@ -237,6 +239,7 @@ module {
     /// Traps if less than n elements are available.
     public func delete(n : Nat) = deleteTo(start() + n);
 
+    /// Delete elements from the beginning to the given end position (exclusive). 
     public func deleteTo(end_ : Nat) {
       if (end_ > end()) Prim.trap("index out of bounds in SlidingWindowBuffer.deleteTo");
       if (end_ >= i_new) {
