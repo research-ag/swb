@@ -1,3 +1,9 @@
+# Swb changelog
+
+## 1.2.2
+
+- remove dev-dependency
+
 ## 1.2.1
 
 - switch base dependency to core
