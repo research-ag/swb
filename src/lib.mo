@@ -55,7 +55,7 @@ module {
     };
 
     /// Returns the total capacity of the vector including deleted elements
-    public func size<X>() : Nat {
+    public func size() : Nat {
       let d = nat32(i_block);
       let i = nat32(i_element);
       let lz = leadingZeros(d / 3);

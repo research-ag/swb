@@ -50,7 +50,7 @@ Restores the `Vector` from stable data
 ### Function `size`
 
 ```motoko no-repl
-func size<X>() : Nat
+func size() : Nat
 
 ```
 
