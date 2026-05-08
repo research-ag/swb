@@ -2,9 +2,130 @@
 
 SlidingWindowBuffer
 
-Copyright: 2023 MR Research AG  
-Main author: Timo Hanke (timohanke)  
-Contributors: Andy Gura (AndyGura)
+Copyright: 2023-2024 MR Research AG
+Main author: Timo Hanke (timohanke)
+Contributors: Andy Gura (AndyGura), Andrii Stepanov (AStepanov25)
+
+## Type `VectorStableData`
+
+```motoko no-repl
+type VectorStableData<X> = {
+  data_blocks : [var [var ?X]];
+  i_block : Nat;
+  i_element : Nat;
+  start_ : Nat;
+};
+
+```
+
+Stable data for a `Vector`
+
+## Class `Vector<X>`
+
+```motoko no-repl
+class Vector<X>()
+
+```
+
+Internal `Vector` class used by `SlidingWindowBuffer`
+
+### Function `share`
+
+```motoko no-repl
+func share() : VectorStableData<X>
+
+```
+
+Converts the `Vector` to stable data
+
+### Function `unshare`
+
+```motoko no-repl
+func unshare(data : VectorStableData<X>)
+
+```
+
+Restores the `Vector` from stable data
+
+### Function `size`
+
+```motoko no-repl
+func size<X>() : Nat
+
+```
+
+Returns the total capacity of the vector including deleted elements
+
+### Function `add`
+
+```motoko no-repl
+func add(element : X) : Nat
+
+```
+
+Adds an element to the end of the vector.
+Returns the absolute index of the added element.
+
+### Function `getOpt`
+
+```motoko no-repl
+func getOpt(index : Nat) : ?X
+
+```
+
+Returns the element at the given index, or `null` if the index is out of bounds or the element has been deleted.
+
+### Function `delete`
+
+```motoko no-repl
+func delete(n : Nat)
+
+```
+
+Deletes `n` elements from the beginning of the vector.
+
+### Function `deleteTo`
+
+```motoko no-repl
+func deleteTo(end : Nat)
+
+```
+
+Deletes elements from the beginning up to but excluding position `end`.
+If `end <= start_` then nothing gets deleted.
+Traps if `end > size()`.
+
+### Function `len`
+
+```motoko no-repl
+func len() : Nat
+
+```
+
+Returns the number of non-deleted entries.
+
+### Function `start`
+
+```motoko no-repl
+func start() : Nat
+
+```
+
+Returns the number of deleted entries.
+
+## Type `StableData`
+
+```motoko no-repl
+type StableData<X> = {
+  old : ?VectorStableData<X>;
+  new : VectorStableData<X>;
+  i_old : Nat;
+  i_new : Nat;
+};
+
+```
+
+Stable data for a sliding window buffer
 
 ## Class `SlidingWindowBuffer<X>`
 
@@ -30,6 +151,24 @@ shift starts all over again. Etc.
 
 Only the waste in `new` is limited to sqrt(n). The waste in `old` is not limited.
 Hence, the largest waste occurs if we do n additions first, then n deletions.
+
+### Function `share`
+
+```motoko no-repl
+func share() : StableData<X>
+
+```
+
+Converts the buffer to stable data
+
+### Function `unshare`
+
+```motoko no-repl
+func unshare(data : StableData<X>)
+
+```
+
+Restores the buffer from stable data
 
 ### Function `add`
 
@@ -60,26 +199,37 @@ func delete(n : Nat)
 Delete n elements from the beginning.
 Traps if less than n elements are available.
 
-### Function `offset`
+### Function `deleteTo`
 
 ```motoko no-repl
-func offset() : Nat
+func deleteTo(end_ : Nat)
 
 ```
 
-The offset of the sliding window.
+Delete elements from the beginning to the given end position (exclusive).
+
+### Function `start`
+
+```motoko no-repl
+func start() : Nat
+
+```
+
+The starting position of the sliding window.
 If the window is non-empty then this equals the index of the first
 element in the window.
 
-### Function `size`
+### Function `end`
 
 ```motoko no-repl
-func size() : Nat
+func end() : Nat
 
 ```
 
-The size of the whole virtual buffer including deletions.
-This equals the index of the next element that would be added.
+The ending position (exclusive) of the sliding window
+= the index of the next element that would be added
+= the total number of additions that have ever been made
+= the size of the whole virtual buffer including deletions
 
 ### Function `len`
 
