@@ -23,16 +23,14 @@ module {
   // Deletion will leave overhead that cannot be freed. But this problem will be
   // mitigated at the next level in the code that uses this Vector (in the
   // SlidingWindowBuffer class).
-  /// Stable data for a `Vector`
-  public type VectorStableData<X> = {
+  type VectorStableData<X> = {
     data_blocks : [var [var ?X]];
     i_block : Nat;
     i_element : Nat;
     start_ : Nat;
   };
 
-  /// `Vector` class used by `SlidingWindowBuffer`
-  public class Vector<X>() {
+  class Vector<X>() {
     var data_blocks : [var [var ?X]] = [var [var]];
     var i_block : Nat = 1;
     var i_element : Nat = 0;
