@@ -31,7 +31,7 @@ module {
     start_ : Nat;
   };
 
-  /// Internal `Vector` class used by `SlidingWindowBuffer`
+  /// `Vector` class used by `SlidingWindowBuffer`
   public class Vector<X>() {
     var data_blocks : [var [var ?X]] = [var [var]];
     var i_block : Nat = 1;

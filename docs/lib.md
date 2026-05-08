@@ -27,7 +27,7 @@ class Vector<X>()
 
 ```
 
-Internal `Vector` class used by `SlidingWindowBuffer`
+`Vector` class used by `SlidingWindowBuffer`
 
 ### Function `share`
 
