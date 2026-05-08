@@ -23,19 +23,22 @@ module {
   // Deletion will leave overhead that cannot be freed. But this problem will be
   // mitigated at the next level in the code that uses this Vector (in the
   // SlidingWindowBuffer class).
-  type VectorStableData<X> = {
+  /// Stable data for a `Vector`
+  public type VectorStableData<X> = {
     data_blocks : [var [var ?X]];
     i_block : Nat;
     i_element : Nat;
     start_ : Nat;
   };
 
-  class Vector<X>() {
+  /// Internal `Vector` class used by `SlidingWindowBuffer`
+  public class Vector<X>() {
     var data_blocks : [var [var ?X]] = [var [var]];
     var i_block : Nat = 1;
     var i_element : Nat = 0;
     var start_ : Nat = 0;
 
+    /// Converts the `Vector` to stable data
     public func share() : VectorStableData<X> = {
       data_blocks = data_blocks;
       i_block = i_block;
@@ -43,6 +46,7 @@ module {
       start_ = start_;
     };
 
+    /// Restores the `Vector` from stable data
     public func unshare(data : VectorStableData<X>) {
       data_blocks := data.data_blocks;
       i_block := data.i_block;
@@ -50,6 +54,7 @@ module {
       start_ := data.start_;
     };
 
+    /// Returns the total capacity of the vector including deleted elements
     public func size<X>() : Nat {
       let d = nat32(i_block);
       let i = nat32(i_element);
@@ -80,6 +85,8 @@ module {
       };
     };
 
+    /// Adds an element to the end of the vector.
+    /// Returns the absolute index of the added element.
     public func add(element : X) : Nat {
       if (i_element == 0) {
         grow_index_block_if_needed();
@@ -116,6 +123,7 @@ module {
       };
     };
 
+    /// Returns the element at the given index, or `null` if the index is out of bounds or the element has been deleted.
     public func getOpt(index : Nat) : ?X {
       let (a, b) = locate(index);
       if (a < i_block or i_element != 0 and a == i_block) {
@@ -125,13 +133,12 @@ module {
       };
     };
 
+    /// Deletes `n` elements from the beginning of the vector.
     public func delete(n : Nat) = deleteTo(start_ + n);
 
-    // delete up to but excluding position `end`
-    // if end <= start_ then nothing gets deleted
-    // TODO: This can be made more sophisticated, we can improve:
-    // * time: avoid calling locate, increment (block, element) directly
-    // * memory: delete the datablocks that have become empty
+    /// Deletes elements from the beginning up to but excluding position `end`.
+    /// If `end <= start_` then nothing gets deleted.
+    /// Traps if `end > size()`.
     public func deleteTo(end : Nat) {
       if (end > size()) Prim.trap("index out of bounds in deleteTo");
       if (end <= start_) return;
@@ -144,10 +151,10 @@ module {
       start_ := end;
     };
 
-    // number of non-deleted entries
+    /// Returns the number of non-deleted entries.
     public func len() : Nat = size() - start_;
 
-    // number of deleted entries
+    /// Returns the number of deleted entries.
     public func start() : Nat = start_;
   };
 
@@ -182,7 +189,7 @@ module {
     var i_old = 0; // offset of old
     var i_new = 0; // offset of new
 
-    /// Reconstruct class from static data
+    /// Converts the buffer to stable data
     public func share() : StableData<X> = {
       old = Option.map(old, func(o : Vector<X>) : VectorStableData<X> = o.share());
       new = new.share();
@@ -190,7 +197,7 @@ module {
       i_new = i_new;
     };
 
-    /// Convert class to static data
+    /// Restores the buffer from stable data
     public func unshare(data : StableData<X>) {
       switch (data.old) {
         case (null) {};
@@ -239,7 +246,7 @@ module {
     /// Traps if less than n elements are available.
     public func delete(n : Nat) = deleteTo(start() + n);
 
-    /// Delete elements from the beginning to the given end position (exclusive). 
+    /// Delete elements from the beginning to the given end position (exclusive).
     public func deleteTo(end_ : Nat) {
       if (end_ > end()) Prim.trap("index out of bounds in SlidingWindowBuffer.deleteTo");
       if (end_ >= i_new) {

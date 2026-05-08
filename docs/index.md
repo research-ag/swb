@@ -1,3 +1,3 @@
 # Index
 
-* [lib](lib.md) SlidingWindowBuffer
+- [lib](lib.md) SlidingWindowBuffer

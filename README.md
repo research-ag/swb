@@ -20,9 +20,9 @@ The API documentation can be found [here](https://mops.one/swb/docs/lib) on Mops
 
 For updates, help, questions, feedback and other requests related to this package join us on:
 
-* [OpenChat group](https://oc.app/2zyqk-iqaaa-aaaar-anmra-cai)
-* [Twitter](https://twitter.com/mr_research_ag)
-* [Dfinity forum](https://forum.dfinity.org/)
+- [OpenChat group](https://oc.app/2zyqk-iqaaa-aaaar-anmra-cai)
+- [Twitter](https://twitter.com/mr_research_ag)
+- [Dfinity forum](https://forum.dfinity.org/)
 
 ### Motivation
 
@@ -35,6 +35,7 @@ The data structure was written to use it as a base for sliding window protocols 
 ### Install with mops
 
 You need `mops` installed. In your project directory run:
+
 ```
 mops add swb
 ```
@@ -43,6 +44,7 @@ In the Motoko source file import the package as:
 
 ```motoko
 import SWB "mo:swb";
+
 ```
 
 ### Example
@@ -67,12 +69,14 @@ buf.getOpt(1) // -> ?"b"
 buf.start() // -> 1
 buf.end() // -> 3
 buf.len() // -> 2
+
 ```
 
 ### Build & test
 
 We need up-to-date versions of `node` and `mops` installed.
 Then run:
+
 ```
 git clone git@github.com:research-ag/swb.git
 mops install
@@ -85,13 +89,23 @@ To run with a specific version of `moc` you can edit `mops.toml`.
 
 We measured the number of instructions for the `add`, `delete` and `getOpt` operations as follows (compared to a plain Vector):
 
-|method|swb|vector|
-|---|---|---|
-|add|492|336|
-|delete|176|-|
-|getOpt|405|261|
+| method | swb | vector |
+| ------ | --- | ------ |
+| add    | 492 | 336    |
+| delete | 176 | -      |
+| getOpt | 405 | 261    |
 
-The measurement was done with `dfx 0.19.0`, `moc 0.11.1` and with the `"optimize" : "cycles"` option in dfx.json.
+The measurement was done with `dfx 0.19.0`, `moc 1.7.0` and with the `"optimize" : "cycles"` option in dfx.json.
+
+## Development
+
+### Formatting
+
+To format the code, run:
+
+```bash
+npx -y prettier --plugin prettier-plugin-motoko --write '**/*.{mo,json,md}'
+```
 
 ## Copyright
 
@@ -103,6 +117,6 @@ Main author: Timo Hanke (timohanke)
 
 Contributors: Andy Gura (andygura), Andrii Stepanov (AStepanov25)
 
-## License 
+## License
 
 Apache-2.0
