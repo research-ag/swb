@@ -198,7 +198,7 @@ module {
     /// Restores the buffer from stable data
     public func unshare(data : StableData<X>) {
       switch (data.old) {
-        case (null) {};
+        case (null) old := null;
         case (?o) {
           let v = Vector<X>();
           v.unshare(o);
