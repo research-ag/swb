@@ -104,7 +104,7 @@ The measurement was done with `dfx 0.19.0`, `moc 1.7.0` and with the `"optimize"
 To format the code, run:
 
 ```bash
-npx -y prettier --write '**/*.{mo,json,md}'
+npx -y prettier --plugin prettier-plugin-motoko --write '**/*.{mo,json,md}'
 ```
 
 ## Copyright
