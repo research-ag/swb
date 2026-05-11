@@ -1,5 +1,12 @@
 # Swb changelog
 
+## 1.2.3
+
+### Changed
+
+- Updated `core` from `2.0.0` to `2.5.0`.
+- Updated `[requirements] moc` from `0.15.0` to `1.6.0`.
+
 ## 1.2.2
 
 - remove dev-dependency
