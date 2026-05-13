@@ -10,7 +10,7 @@ license = "Apache-2.0"
 core = "2.5.0"
 
 [requirements]
-moc = "1.6.0"
+moc = "1.0.0"
 
 [toolchain]
 moc = "1.7.0"
