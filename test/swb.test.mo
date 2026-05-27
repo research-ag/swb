@@ -131,3 +131,73 @@ do {
   buf.deleteTo(1);
   buf.deleteTo(2);
 };
+
+// Test isEmpty
+do {
+  let buf = SlidingWindowBuffer.empty<Text>();
+  assert buf.isEmpty();
+  ignore buf.add("a");
+  assert not buf.isEmpty();
+  ignore buf.add("b");
+  assert not buf.isEmpty();
+  buf.delete(2);
+  assert buf.isEmpty();
+  // window has advanced: start == end == 2, but still empty
+  assert buf.start() == 2;
+  assert buf.end() == 2;
+};
+
+// Test at
+do {
+  let buf = SlidingWindowBuffer.empty<Text>();
+  ignore buf.add("a");
+  ignore buf.add("b");
+  ignore buf.add("c");
+  assert buf.at(0) == "a";
+  assert buf.at(1) == "b";
+  assert buf.at(2) == "c";
+  buf.delete(1);
+  assert buf.at(1) == "b";
+  assert buf.at(2) == "c";
+};
+
+// Test put within a single (new) vector
+do {
+  let buf = SlidingWindowBuffer.empty<Text>();
+  ignore buf.add("a");
+  ignore buf.add("b");
+  ignore buf.add("c");
+  buf.put(1, "B");
+  assert buf.get(0) == ?"a";
+  assert buf.get(1) == ?"B";
+  assert buf.get(2) == ?"c";
+  assert buf.at(1) == "B";
+};
+
+// Test put across the old/new boundary after rotation
+do {
+  let buf = SlidingWindowBuffer.empty<Nat>();
+  // Add 100 elements, delete enough to force rotation, then add more.
+  // After rotation: i_old=0, i_new=100; some indices live in `old`, others in `new`.
+  for (i in Nat.range(0, 100)) {
+    ignore buf.add(i);
+  };
+  buf.delete(20); // exceeds sqrt(100) waste threshold, triggers rotation
+  for (i in Nat.range(100, 150)) {
+    ignore buf.add(i);
+  };
+  // index 50 lives in `old`
+  buf.put(50, 9999);
+  // index 120 lives in `new`
+  buf.put(120, 8888);
+  assert buf.get(50) == ?9999;
+  assert buf.get(120) == ?8888;
+  // neighbours unaffected
+  assert buf.get(49) == ?49;
+  assert buf.get(51) == ?51;
+  assert buf.get(119) == ?119;
+  assert buf.get(121) == ?121;
+  // at agrees
+  assert buf.at(50) == 9999;
+  assert buf.at(120) == 8888;
+};

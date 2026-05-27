@@ -133,6 +133,18 @@ module {
       };
     };
 
+    /// Overwrites the element at `index` with `element`.
+    /// Traps if the index is out of bounds or the slot has been deleted.
+    public func put<X>(self : Vector<X>, index : Nat, element : X) {
+      let (a, b) = locate(index);
+      let inRange = a < self.i_block or self.i_element != 0 and a == self.i_block;
+      if (not inRange) Prim.trap("index out of bounds in put");
+      switch (self.data_blocks[a][b]) {
+        case (?_) self.data_blocks[a][b] := ?element;
+        case null Prim.trap("index out of bounds in put");
+      };
+    };
+
     /// Deletes `n` elements from the beginning of the vector.
     public func delete<X>(self : Vector<X>, n : Nat) = deleteTo(self, self.start_ + n);
 
@@ -188,6 +200,28 @@ module {
     } else null;
   };
 
+  /// Random access based on absolute (ever-growing) index.
+  /// Traps if the index falls outside the sliding window on either end.
+  public func at<X>(self : SlidingWindowBuffer<X>, i : Nat) : X {
+    switch (get(self, i)) {
+      case (?x) x;
+      case null Prim.trap("index out of bounds in SlidingWindowBuffer.at");
+    };
+  };
+
+  /// Overwrite the element at absolute index `i` with `value`.
+  /// Traps if `i` is outside the sliding window [start(), end()).
+  public func put<X>(self : SlidingWindowBuffer<X>, i : Nat, value : X) {
+    if (i >= self.end()) Prim.trap("index out of bounds in SlidingWindowBuffer.put");
+    if (i < self.start()) Prim.trap("index out of bounds in SlidingWindowBuffer.put");
+    if (i >= self.i_new) {
+      self.new.put(i - self.i_new : Nat, value);
+    } else {
+      let ?vec = self.old else Prim.trap("old is null in SlidingWindowBuffer.put");
+      vec.put(i - self.i_old : Nat, value);
+    };
+  };
+
   func rotateIfNeeded<X>(self : SlidingWindowBuffer<X>) {
     let size = self.new.size();
     let s = nat32(size);
@@ -240,4 +274,7 @@ module {
   /// The size of the window, i.e. the number of elements that are actually
   /// available to get.
   public func size<X>(self : SlidingWindowBuffer<X>) : Nat = self.end() - self.start();
+
+  /// Returns `true` if the window contains no elements.
+  public func isEmpty<X>(self : SlidingWindowBuffer<X>) : Bool = size(self) == 0;
 };
