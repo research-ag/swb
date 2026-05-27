@@ -22,7 +22,6 @@
 
 import Prim "mo:prim";
 import { bitcountLeadingZero = leadingZeros; fromNat = nat32; toNat = nat } "mo:core/Nat32";
-import Option "mo:core/Option";
 import VarArray "mo:core/VarArray";
 
 module {
