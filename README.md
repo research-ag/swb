@@ -50,9 +50,9 @@ import SWB "mo:swb";
 ### Example
 
 ```motoko
-import SWB "mo:swb";
+import { SlidingWindowBuffer } "mo:swb";
 
-let buf = SWB.SlidingWindowBuffer<Text>();
+let buf = SlidingWindowBuffer.new<Text>();
 buf.add("a");
 buf.add("b");
 buf.add("c");

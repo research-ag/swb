@@ -1,8 +1,8 @@
-import SWB "../src/lib";
+import { SlidingWindowBuffer } "../src/lib";
 import Nat "mo:core/Nat";
 
 do {
-  let buf = SWB.SlidingWindowBuffer<Text>();
+  let buf = SlidingWindowBuffer.new<Text>();
 
   // test defaults
   assert buf.end() == 0;
@@ -100,9 +100,9 @@ do {
   assert buf.getOpt(6000) == ?"test";
 };
 
-// Test share/unshare
+// Test stable storage (record is directly stable)
 do {
-  let buf = SWB.SlidingWindowBuffer<Nat>();
+  let buf = SlidingWindowBuffer.new<Nat>();
   for (i in Nat.range(0, 100)) {
     ignore buf.add(i);
   };
@@ -110,8 +110,7 @@ do {
   for (i in Nat.range(0, 100)) {
     assert buf.getOpt(i) == (if (i < 50) { null } else { ?i });
   };
-  let buf1 = SWB.SlidingWindowBuffer<Nat>();
-  buf1.unshare(buf.share());
+  let buf1 : SlidingWindowBuffer.SlidingWindowBuffer<Nat> = buf;
   for (i in Nat.range(0, 100)) {
     assert buf1.getOpt(i) == (if (i < 50) { null } else { ?i });
   };
@@ -119,7 +118,7 @@ do {
 
 // Test access and deletion after rotation
 do {
-  let buf = SWB.SlidingWindowBuffer<Nat>();
+  let buf = SlidingWindowBuffer.new<Nat>();
   let N = 2;
   for (i in Nat.range(1, N + 1)) {
     ignore buf.add(i);
