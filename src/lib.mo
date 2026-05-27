@@ -1,6 +1,22 @@
-/// SlidingWindowBuffer
+/// Sliding window buffer
 ///
-/// Copyright: 2023-2026 MR Research AG
+/// A linear buffer with random access where we can add at end and delete from
+/// the beginning.  Elements remain at their original position, despite
+/// deletion, hence the data structure becomes in fact a sliding window into an
+/// ever-growing buffer.
+///
+/// This data structure consists of a pair of Vectors called `old` and `new`.
+/// We always add to `new`.  While `old` is empty we delete from `new` but only
+/// until the waste in `new` exceeds sqrt(n). When `new` has >sqrt(n) waste
+/// then we rename `new` to `old` and create a fresh empty `new`. Now deletions
+/// happen from old, until old is empty. Then `old` is discarded and deletions
+/// happen from `new` again until the waste in `new` exceeds sqrt(n). Then the
+/// shift starts all over again. Etc.
+///
+/// Only the waste in `new` is limited to sqrt(n). The waste in `old` is not limited.
+/// Hence, the largest waste occurs if we do n additions first, then n deletions.
+///
+/// Copyright: 2023-26 MR Research AG
 /// Main author: Timo Hanke (timohanke)
 /// Contributors: Andy Gura (AndyGura), Andrii Stepanov (AStepanov25)
 
@@ -142,105 +158,86 @@ module {
     public func start<X>(self : Vector<X>) : Nat = self.start_;
   };
 
-  /// Sliding window buffer
-  ///
-  /// A linear buffer with random access where we can add at end and delete from
-  /// the beginning.  Elements remain at their original position, despite
-  /// deletion, hence the data structure becomes in fact a sliding window into an
-  /// ever-growing buffer.
-  ///
-  /// This data structure consists of a pair of Vectors called `old` and `new`.
-  /// We always add to `new`.  While `old` is empty we delete from `new` but only
-  /// until the waste in `new` exceeds sqrt(n). When `new` has >sqrt(n) waste
-  /// then we rename `new` to `old` and create a fresh empty `new`. Now deletions
-  /// happen from old, until old is empty. Then `old` is discarded and deletions
-  /// happen from `new` again until the waste in `new` exceeds sqrt(n). Then the
-  /// shift starts all over again. Etc.
-  ///
-  /// Only the waste in `new` is limited to sqrt(n). The waste in `old` is not limited.
-  /// Hence, the largest waste occurs if we do n additions first, then n deletions.
-  public module SlidingWindowBuffer {
-    public type SlidingWindowBuffer<X> = {
-      var old : ?Vector.Vector<X>;
-      var new : Vector.Vector<X>;
-      var i_old : Nat;
-      var i_new : Nat;
-    };
-
-    public func new<X>() : SlidingWindowBuffer<X> = {
-      var old = null;
-      var new = Vector.new<X>();
-      var i_old = 0;
-      var i_new = 0;
-    };
-
-    /// Add an element to the end
-    public func add<X>(self : SlidingWindowBuffer<X>, x : X) : Nat {
-      self.new.add(x) + self.i_new;
-    };
-
-    /// Random access based on absolute (ever-growing) index.
-    /// Returns `null` if the index falls outside the sliding window on either end.
-    public func getOpt<X>(self : SlidingWindowBuffer<X>, i : Nat) : ?X {
-      if (i >= self.i_new) {
-        self.new.getOpt(i - self.i_new : Nat);
-      } else if (i >= self.i_old) {
-        let ?vec = self.old else Prim.trap("old is null in Buffer");
-        vec.getOpt(i - self.i_old : Nat);
-      } else null;
-    };
-
-    func rotateIfNeeded<X>(self : SlidingWindowBuffer<X>) {
-      let size = self.new.size();
-      let s = nat32(size);
-      let d = nat32(self.new.start());
-      let bits = 32 - leadingZeros(s);
-      let limit = s >> (bits >> 1);
-      if (d > limit) {
-        self.old := ?self.new;
-        self.i_old := self.i_new;
-        self.new := Vector.new<X>();
-        self.i_new += size;
-      };
-    };
-
-    /// Delete n elements from the beginning.
-    /// Traps if less than n elements are available.
-    public func delete<X>(self : SlidingWindowBuffer<X>, n : Nat) = deleteTo(self, self.start() + n);
-
-    /// Delete elements from the beginning to the given end position (exclusive).
-    public func deleteTo<X>(self : SlidingWindowBuffer<X>, end_ : Nat) {
-      if (end_ > self.end()) Prim.trap("index out of bounds in SlidingWindowBuffer.deleteTo");
-      if (end_ >= self.i_new) {
-        self.new.deleteTo(end_ - self.i_new : Nat);
-        rotateIfNeeded(self);
-        // free old is possible
-        if (end_ >= self.i_new) {
-          self.old := null;
-          self.i_old := self.i_new;
-        };
-      } else if (end_ >= self.i_old) {
-        let ?vec = self.old else Prim.trap("cannot happen");
-        vec.deleteTo(end_ - self.i_old : Nat);
-      };
-    };
-
-    /// The starting position of the sliding window.
-    /// If the window is non-empty then this equals the index of the first
-    /// element in the window.
-    public func start<X>(self : SlidingWindowBuffer<X>) : Nat = switch (self.old) {
-      case (?vec) { self.i_old + vec.start() };
-      case (null) { self.i_new + self.new.start() };
-    };
-
-    /// The ending position (exclusive) of the sliding window
-    /// = the index of the next element that would be added
-    /// = the total number of additions that have ever been made
-    /// = the size of the whole virtual buffer including deletions
-    public func end<X>(self : SlidingWindowBuffer<X>) : Nat = self.i_new + self.new.size();
-
-    /// The length of the window, i.e. the number of elements that are actually
-    /// available to get.
-    public func len<X>(self : SlidingWindowBuffer<X>) : Nat = self.end() - self.start();
+  public type SlidingWindowBuffer<X> = {
+    var old : ?Vector.Vector<X>;
+    var new : Vector.Vector<X>;
+    var i_old : Nat;
+    var i_new : Nat;
   };
+
+  public func empty<X>() : SlidingWindowBuffer<X> = {
+    var old = null;
+    var new = Vector.new<X>();
+    var i_old = 0;
+    var i_new = 0;
+  };
+
+  /// Add an element to the end
+  public func add<X>(self : SlidingWindowBuffer<X>, x : X) : Nat {
+    self.new.add(x) + self.i_new;
+  };
+
+  /// Random access based on absolute (ever-growing) index.
+  /// Returns `null` if the index falls outside the sliding window on either end.
+  public func get<X>(self : SlidingWindowBuffer<X>, i : Nat) : ?X {
+    if (i >= self.i_new) {
+      self.new.getOpt(i - self.i_new : Nat);
+    } else if (i >= self.i_old) {
+      let ?vec = self.old else Prim.trap("old is null in Buffer");
+      vec.getOpt(i - self.i_old : Nat);
+    } else null;
+  };
+
+  func rotateIfNeeded<X>(self : SlidingWindowBuffer<X>) {
+    let size = self.new.size();
+    let s = nat32(size);
+    let d = nat32(self.new.start());
+    let bits = 32 - leadingZeros(s);
+    let limit = s >> (bits >> 1);
+    if (d > limit) {
+      self.old := ?self.new;
+      self.i_old := self.i_new;
+      self.new := Vector.new<X>();
+      self.i_new += size;
+    };
+  };
+
+  /// Delete n elements from the beginning.
+  /// Traps if less than n elements are available.
+  public func delete<X>(self : SlidingWindowBuffer<X>, n : Nat) = deleteTo(self, self.start() + n);
+
+  /// Delete elements from the beginning to the given end position (exclusive).
+  public func deleteTo<X>(self : SlidingWindowBuffer<X>, end_ : Nat) {
+    if (end_ > self.end()) Prim.trap("index out of bounds in SlidingWindowBuffer.deleteTo");
+    if (end_ >= self.i_new) {
+      self.new.deleteTo(end_ - self.i_new : Nat);
+      rotateIfNeeded(self);
+      // free old is possible
+      if (end_ >= self.i_new) {
+        self.old := null;
+        self.i_old := self.i_new;
+      };
+    } else if (end_ >= self.i_old) {
+      let ?vec = self.old else Prim.trap("cannot happen");
+      vec.deleteTo(end_ - self.i_old : Nat);
+    };
+  };
+
+  /// The starting position of the sliding window.
+  /// If the window is non-empty then this equals the index of the first
+  /// element in the window.
+  public func start<X>(self : SlidingWindowBuffer<X>) : Nat = switch (self.old) {
+    case (?vec) { self.i_old + vec.start() };
+    case (null) { self.i_new + self.new.start() };
+  };
+
+  /// The ending position (exclusive) of the sliding window
+  /// = the index of the next element that would be added
+  /// = the total number of additions that have ever been made
+  /// = the size of the whole virtual buffer including deletions
+  public func end<X>(self : SlidingWindowBuffer<X>) : Nat = self.i_new + self.new.size();
+
+  /// The size of the window, i.e. the number of elements that are actually
+  /// available to get.
+  public func size<X>(self : SlidingWindowBuffer<X>) : Nat = self.end() - self.start();
 };

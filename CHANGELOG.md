@@ -1,24 +1,26 @@
 # Swb changelog
 
+## 2.0.0
+
+- Static module version
+
 ## 1.2.3
 
-### Changed
-
-- Updated `core` from `2.0.0` to `2.5.0`.
-- Updated `[requirements] moc` from `0.15.0` to `1.6.0`.
+- Bump `core` dependency to `2.5.0`
+- Require `moc 1.6.0`
 
 ## 1.2.2
 
-- remove dev-dependency
+- Remove dev-dependency
 
 ## 1.2.1
 
-- switch base dependency to core
+- Switch base dependency to core
 
 ## 1.2.0
 
-- bump all dependencies
-- base dependency is 0.11.1
+- Bump all dependencies
+- Base dependency is 0.11.1
 
 ## 1.1.1
 
