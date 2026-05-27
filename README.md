@@ -69,6 +69,7 @@ assert buf.get(1) == ?"b";
 assert buf.start() == 1;
 assert buf.end() == 3;
 assert buf.size() == 2;
+
 ```
 
 ### Build & test
@@ -86,15 +87,7 @@ To run with a specific version of `moc` you can edit `mops.toml`.
 
 ## Benchmark
 
-We measured the number of instructions per operation for `add`, `delete` and `get`, averaged over batches of 1000 (compared to `mo:core/List`). `List` has no delete-from-start, so for the `delete` row we compare swb's `delete` to `List.removeLast`.
-
-| method | swb   | List |
-| ------ | ----: | ---: |
-| add    |   730 |  391 |
-| delete | 1_510 |  305 |
-| get    |   404 |  247 |
-
-The measurement was done with `moc 1.7.0` via `mops bench` (default settings, no `optimize` flag). See [bench/swb_vs_list.bench.mo](bench/swb_vs_list.bench.mo).
+Per-operation instruction counts for `add`, `delete`, `get` and `at` (compared to `mo:core/List`) are produced by `mops bench`. See [bench/swb_vs_list.bench.mo](bench/swb_vs_list.bench.mo).
 
 ## Development
 

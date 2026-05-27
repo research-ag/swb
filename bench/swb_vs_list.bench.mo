@@ -10,7 +10,7 @@ module {
     let schema : Bench.Schema = {
       name = "swb vs core/List";
       description = "Instructions per " # debug_show BATCH # " operations. swb deletes from the start (`delete`); List has no delete-from-start, so the `delete` row uses `List.removeLast` instead.";
-      rows = ["add", "delete", "get"];
+      rows = ["add", "delete", "get", "at"];
       cols = ["swb", "List"];
     };
 
@@ -64,6 +64,16 @@ module {
         func() {
           var k = 0;
           while (k < BATCH) { ignore List.get(listGet, k); k += 1 };
+        },
+      ],
+      [
+        func() {
+          var k = 0;
+          while (k < BATCH) { ignore SWB.at(swbGet, k); k += 1 };
+        },
+        func() {
+          var k = 0;
+          while (k < BATCH) { ignore List.at(listGet, k); k += 1 };
         },
       ],
     ];

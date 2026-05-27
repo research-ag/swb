@@ -132,6 +132,30 @@ module {
       };
     };
 
+    /// Returns the element at the given index.
+    /// Traps if the index is out of bounds or the element has been deleted.
+    public func at<X>(self : Vector<X>, index : Nat) : X {
+      // inlined version of:
+      //   let (a,b) = locate(index);
+      //   switch(self.data_blocks[a][b]) {
+      //     case (?element) element;
+      //     case (null) Prim.trap "...";
+      //   };
+      let i = nat32(index);
+      let lz = leadingZeros(i);
+      let lz2 = lz >> 1;
+      switch (
+        if (lz & 1 == 0) {
+          self.data_blocks[nat(((i << lz2) >> 16) ^ (0x10000 >> lz2))][nat(i & (0xFFFF >> lz2))];
+        } else {
+          self.data_blocks[nat(((i << lz2) >> 15) ^ (0x18000 >> lz2))][nat(i & (0x7FFF >> lz2))];
+        }
+      ) {
+        case (?result) return result;
+        case (_) Prim.trap "index out of bounds in at";
+      };
+    };
+
     /// Overwrites the element at `index` with `element`.
     /// Traps if the index is out of bounds or the slot has been deleted.
     public func put<X>(self : Vector<X>, index : Nat, element : X) {
@@ -202,10 +226,11 @@ module {
   /// Random access based on absolute (ever-growing) index.
   /// Traps if the index falls outside the sliding window on either end.
   public func at<X>(self : SlidingWindowBuffer<X>, i : Nat) : X {
-    switch (get(self, i)) {
-      case (?x) x;
-      case null Prim.trap("index out of bounds in SlidingWindowBuffer.at");
+    if (i >= self.i_new) {
+      return self.new.at(i - self.i_new : Nat);
     };
+    let ?vec = self.old else Prim.trap("old is null in SlidingWindowBuffer.at");
+    vec.at(i - self.i_old : Nat);
   };
 
   /// Overwrite the element at absolute index `i` with `value`.
