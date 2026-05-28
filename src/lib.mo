@@ -193,6 +193,8 @@ module {
     public func start<X>(self : Vector<X>) : Nat = self.start_;
   };
 
+  /// A sliding window buffer.
+  /// The record is itself stable, so it can be held directly in a `stable var`.
   public type SlidingWindowBuffer<X> = {
     var old : ?Vector.Vector<X>;
     var new : Vector.Vector<X>;
@@ -200,6 +202,7 @@ module {
     var i_new : Nat;
   };
 
+  /// Creates a new empty sliding window buffer.
   public func empty<X>() : SlidingWindowBuffer<X> = {
     var old = null;
     var new = Vector.new<X>();

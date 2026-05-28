@@ -1,5 +1,9 @@
 # Swb changelog
 
+## 2.0.1
+
+- Complete documentation
+
 ## 2.0.0
 
 - Converted API from class-based to static module (record type). SWB is now directly stable.
