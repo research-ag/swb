@@ -236,8 +236,8 @@ module {
   /// Overwrite the element at absolute index `i` with `value`.
   /// Traps if `i` is outside the sliding window [start(), end()).
   public func put<X>(self : SlidingWindowBuffer<X>, i : Nat, value : X) {
-    if (i >= self.end()) Prim.trap("index out of bounds in SlidingWindowBuffer.put");
-    if (i < self.start()) Prim.trap("index out of bounds in SlidingWindowBuffer.put");
+    if (i >= end(self)) Prim.trap("index out of bounds in SlidingWindowBuffer.put");
+    if (i < start(self)) Prim.trap("index out of bounds in SlidingWindowBuffer.put");
     if (i >= self.i_new) {
       self.new.put(i - self.i_new : Nat, value);
     } else {
@@ -262,11 +262,11 @@ module {
 
   /// Delete n elements from the beginning.
   /// Traps if less than n elements are available.
-  public func delete<X>(self : SlidingWindowBuffer<X>, n : Nat) = deleteTo(self, self.start() + n);
+  public func delete<X>(self : SlidingWindowBuffer<X>, n : Nat) = deleteTo(self, start(self) + n);
 
   /// Delete elements from the beginning to the given end position (exclusive).
   public func deleteTo<X>(self : SlidingWindowBuffer<X>, end_ : Nat) {
-    if (end_ > self.end()) Prim.trap("index out of bounds in SlidingWindowBuffer.deleteTo");
+    if (end_ > end(self)) Prim.trap("index out of bounds in SlidingWindowBuffer.deleteTo");
     if (end_ >= self.i_new) {
       self.new.deleteTo(end_ - self.i_new : Nat);
       rotateIfNeeded(self);
@@ -297,8 +297,8 @@ module {
 
   /// The size of the window, i.e. the number of elements that are actually
   /// available to get.
-  public func size<X>(self : SlidingWindowBuffer<X>) : Nat = self.end() - self.start();
+  public func size<X>(self : SlidingWindowBuffer<X>) : Nat = end(self) - start(self);
 
   /// Returns `true` if the window contains no elements.
-  public func isEmpty<X>(self : SlidingWindowBuffer<X>) : Bool = size(self) == 0;
+  public func isEmpty<X>(self : SlidingWindowBuffer<X>) : Bool = end(self) == start(self);
 };
