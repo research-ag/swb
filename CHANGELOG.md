@@ -2,7 +2,7 @@
 
 ## 2.0.1
 
-- Completed public API documentation: added doc strings for the `SlidingWindowBuffer` type and `empty`, bringing `mo-doc` coverage to 100%.
+- Complete documentation
 
 ## 2.0.0
 
