@@ -2,7 +2,15 @@
 
 ## 2.0.0
 
-- Static module version
+- Converted API from class-based to static module (record type). SWB is now directly stable.
+- Constructor `SlidingWindowBuffer<X>()` becomes function `empty<X>()`.
+- Support for dot-notation.
+- Renamed `getOpt` → `get`.
+- Renamed `len` → `size`.
+- Removed `share()` / `unshare()`.
+- Added `at(buf, i) : X` — like `get`, but traps if `i` is outside `[start, end)`.
+- Added `put(buf, i, value)` — overwrite the element at absolute index `i`; traps if `i` is outside `[start, end)`.
+- Added `isEmpty(buf) : Bool`.
 
 ## 1.2.3
 
