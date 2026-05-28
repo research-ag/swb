@@ -52,23 +52,23 @@ import SWB "mo:swb";
 ```motoko
 import SWB "mo:swb";
 
-let buf = SWB.SlidingWindowBuffer<Text>();
-buf.add("a");
-buf.add("b");
-buf.add("c");
+let buf = SWB.empty<Text>();
+ignore buf.add("a");
+ignore buf.add("b");
+ignore buf.add("c");
 
-buf.getOpt(0) // -> ?"a"
-buf.getOpt(1) // -> ?"b"
-buf.start() // -> 0
-buf.end() // -> 3
-buf.len() // -> 3
+assert buf.get(0) == ?"a";
+assert buf.get(1) == ?"b";
+assert buf.start() == 0;
+assert buf.end() == 3;
+assert buf.size() == 3;
 
 buf.deleteTo(1);
-buf.getOpt(0) // -> null
-buf.getOpt(1) // -> ?"b"
-buf.start() // -> 1
-buf.end() // -> 3
-buf.len() // -> 2
+assert buf.get(0) == null;
+assert buf.get(1) == ?"b";
+assert buf.start() == 1;
+assert buf.end() == 3;
+assert buf.size() == 2;
 
 ```
 
@@ -87,15 +87,7 @@ To run with a specific version of `moc` you can edit `mops.toml`.
 
 ## Benchmark
 
-We measured the number of instructions for the `add`, `delete` and `getOpt` operations as follows (compared to a plain Vector):
-
-| method | swb | vector |
-| ------ | --- | ------ |
-| add    | 492 | 336    |
-| delete | 176 | -      |
-| getOpt | 405 | 261    |
-
-The measurement was done with `dfx 0.19.0`, `moc 1.7.0` and with the `"optimize" : "cycles"` option in dfx.json.
+Per-operation instruction counts for `add`, `delete`, `get` and `at` (compared to `mo:core/List`) are produced by `mops bench`. See [bench/swb_vs_list.bench.mo](bench/swb_vs_list.bench.mo).
 
 ## Development
 
@@ -109,7 +101,7 @@ npx -y prettier --plugin prettier-plugin-motoko --write '**/*.{mo,json,md}'
 
 ## Copyright
 
-MR Research AG, 2023 - 2025
+MR Research AG, 2023-26
 
 ## Authors
 

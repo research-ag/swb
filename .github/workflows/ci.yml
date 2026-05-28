@@ -8,7 +8,7 @@ on:
 
 jobs:
   test:
-    name: Tests
+    name: Tests and Benchmarks
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -20,6 +20,9 @@ jobs:
           mops toolchain init
           mops install
       - run: mops test
+      - name: Install dfx
+        uses: dfinity/setup-dfx@main
+      - run: mops bench
 
   fmt:
     name: Formatting Check

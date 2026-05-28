@@ -1,12 +1,27 @@
-/// SlidingWindowBuffer
+/// Sliding window buffer
 ///
-/// Copyright: 2023-2024 MR Research AG
+/// A linear buffer with random access where we can add at end and delete from
+/// the beginning.  Elements remain at their original position, despite
+/// deletion, hence the data structure becomes in fact a sliding window into an
+/// ever-growing buffer.
+///
+/// This data structure consists of a pair of Vectors called `old` and `new`.
+/// We always add to `new`.  While `old` is empty we delete from `new` but only
+/// until the waste in `new` exceeds sqrt(n). When `new` has >sqrt(n) waste
+/// then we rename `new` to `old` and create a fresh empty `new`. Now deletions
+/// happen from old, until old is empty. Then `old` is discarded and deletions
+/// happen from `new` again until the waste in `new` exceeds sqrt(n). Then the
+/// shift starts all over again. Etc.
+///
+/// Only the waste in `new` is limited to sqrt(n). The waste in `old` is not limited.
+/// Hence, the largest waste occurs if we do n additions first, then n deletions.
+///
+/// Copyright: 2023-26 MR Research AG
 /// Main author: Timo Hanke (timohanke)
 /// Contributors: Andy Gura (AndyGura), Andrii Stepanov (AStepanov25)
 
 import Prim "mo:prim";
 import { bitcountLeadingZero = leadingZeros; fromNat = nat32; toNat = nat } "mo:core/Nat32";
-import Option "mo:core/Option";
 import VarArray "mo:core/VarArray";
 
 module {
@@ -22,40 +37,26 @@ module {
   //
   // Deletion will leave overhead that cannot be freed. But this problem will be
   // mitigated at the next level in the code that uses this Vector (in the
-  // SlidingWindowBuffer class).
-  type VectorStableData<X> = {
-    data_blocks : [var [var ?X]];
-    i_block : Nat;
-    i_element : Nat;
-    start_ : Nat;
-  };
-
-  class Vector<X>() {
-    var data_blocks : [var [var ?X]] = [var [var]];
-    var i_block : Nat = 1;
-    var i_element : Nat = 0;
-    var start_ : Nat = 0;
-
-    /// Converts the `Vector` to stable data
-    public func share() : VectorStableData<X> = {
-      data_blocks = data_blocks;
-      i_block = i_block;
-      i_element = i_element;
-      start_ = start_;
+  // SlidingWindowBuffer module).
+  module Vector {
+    public type Vector<X> = {
+      var data_blocks : [var [var ?X]];
+      var i_block : Nat;
+      var i_element : Nat;
+      var start_ : Nat;
     };
 
-    /// Restores the `Vector` from stable data
-    public func unshare(data : VectorStableData<X>) {
-      data_blocks := data.data_blocks;
-      i_block := data.i_block;
-      i_element := data.i_element;
-      start_ := data.start_;
+    public func new<X>() : Vector<X> = {
+      var data_blocks = [var [var]];
+      var i_block = 1;
+      var i_element = 0;
+      var start_ = 0;
     };
 
     /// Returns the total capacity of the vector including deleted elements
-    public func size() : Nat {
-      let d = nat32(i_block);
-      let i = nat32(i_element);
+    public func size<X>(self : Vector<X>) : Nat {
+      let d = nat32(self.i_block);
+      let i = nat32(self.i_element);
       let lz = leadingZeros(d / 3);
       nat((d -% (1 <>> lz)) <>> lz +% i);
     };
@@ -71,43 +72,43 @@ module {
       };
     };
 
-    func grow_index_block_if_needed() {
-      if (data_blocks.size() == i_block) {
-        let new_blocks = VarArray.repeat<[var ?X]>([var], new_index_block_length(nat32(i_block)));
+    func grow_index_block_if_needed<X>(self : Vector<X>) {
+      if (self.data_blocks.size() == self.i_block) {
+        let new_blocks = VarArray.repeat<[var ?X]>([var], new_index_block_length(nat32(self.i_block)));
         var i = 0;
-        while (i < i_block) {
-          new_blocks[i] := data_blocks[i];
+        while (i < self.i_block) {
+          new_blocks[i] := self.data_blocks[i];
           i += 1;
         };
-        data_blocks := new_blocks;
+        self.data_blocks := new_blocks;
       };
     };
 
     /// Adds an element to the end of the vector.
     /// Returns the absolute index of the added element.
-    public func add(element : X) : Nat {
-      if (i_element == 0) {
-        grow_index_block_if_needed();
+    public func add<X>(self : Vector<X>, element : X) : Nat {
+      if (self.i_element == 0) {
+        grow_index_block_if_needed(self);
 
-        if (data_blocks[i_block].size() == 0) {
-          data_blocks[i_block] := VarArray.repeat<?X>(
+        if (self.data_blocks[self.i_block].size() == 0) {
+          self.data_blocks[self.i_block] := VarArray.repeat<?X>(
             null,
-            data_block_size(i_block),
+            data_block_size(self.i_block),
           );
         };
       };
 
-      let last_data_block = data_blocks[i_block];
+      let last_data_block = self.data_blocks[self.i_block];
 
-      last_data_block[i_element] := ?element;
+      last_data_block[self.i_element] := ?element;
 
-      i_element += 1;
-      if (i_element == last_data_block.size()) {
-        i_element := 0;
-        i_block += 1;
+      self.i_element += 1;
+      if (self.i_element == last_data_block.size()) {
+        self.i_element := 0;
+        self.i_block += 1;
       };
 
-      return size() - 1;
+      return self.size() - 1;
     };
 
     func locate(index : Nat) : (Nat, Nat) {
@@ -122,161 +123,182 @@ module {
     };
 
     /// Returns the element at the given index, or `null` if the index is out of bounds or the element has been deleted.
-    public func getOpt(index : Nat) : ?X {
+    public func getOpt<X>(self : Vector<X>, index : Nat) : ?X {
       let (a, b) = locate(index);
-      if (a < i_block or i_element != 0 and a == i_block) {
-        data_blocks[a][b];
+      if (a < self.i_block or self.i_element != 0 and a == self.i_block) {
+        self.data_blocks[a][b];
       } else {
         null;
       };
     };
 
+    /// Returns the element at the given index.
+    /// Traps if the index is out of bounds or the element has been deleted.
+    public func at<X>(self : Vector<X>, index : Nat) : X {
+      // inlined version of:
+      //   let (a,b) = locate(index);
+      //   switch(self.data_blocks[a][b]) {
+      //     case (?element) element;
+      //     case (null) Prim.trap "...";
+      //   };
+      let i = nat32(index);
+      let lz = leadingZeros(i);
+      let lz2 = lz >> 1;
+      switch (
+        if (lz & 1 == 0) {
+          self.data_blocks[nat(((i << lz2) >> 16) ^ (0x10000 >> lz2))][nat(i & (0xFFFF >> lz2))];
+        } else {
+          self.data_blocks[nat(((i << lz2) >> 15) ^ (0x18000 >> lz2))][nat(i & (0x7FFF >> lz2))];
+        }
+      ) {
+        case (?result) return result;
+        case (_) Prim.trap "index out of bounds in at";
+      };
+    };
+
+    /// Overwrites the element at `index` with `element`.
+    /// Traps if the index is out of bounds or the slot has been deleted.
+    public func put<X>(self : Vector<X>, index : Nat, element : X) {
+      let (a, b) = locate(index);
+      let inRange = a < self.i_block or self.i_element != 0 and a == self.i_block;
+      if (not inRange) Prim.trap("index out of bounds in put");
+      switch (self.data_blocks[a][b]) {
+        case (?_) self.data_blocks[a][b] := ?element;
+        case null Prim.trap("index out of bounds in put");
+      };
+    };
+
     /// Deletes `n` elements from the beginning of the vector.
-    public func delete(n : Nat) = deleteTo(start_ + n);
+    public func delete<X>(self : Vector<X>, n : Nat) = deleteTo(self, self.start_ + n);
 
     /// Deletes elements from the beginning up to but excluding position `end`.
     /// If `end <= start_` then nothing gets deleted.
     /// Traps if `end > size()`.
-    public func deleteTo(end : Nat) {
-      if (end > size()) Prim.trap("index out of bounds in deleteTo");
-      if (end <= start_) return;
-      var pos = start_;
+    public func deleteTo<X>(self : Vector<X>, end : Nat) {
+      if (end > self.size()) Prim.trap("index out of bounds in deleteTo");
+      if (end <= self.start_) return;
+      var pos = self.start_;
       while (pos < end) {
         let (a, b) = locate(pos);
-        data_blocks[a][b] := null;
+        self.data_blocks[a][b] := null;
         pos += 1;
       };
-      start_ := end;
+      self.start_ := end;
     };
 
     /// Returns the number of non-deleted entries.
-    public func len() : Nat = size() - start_;
+    public func len<X>(self : Vector<X>) : Nat = self.size() - self.start_;
 
     /// Returns the number of deleted entries.
-    public func start() : Nat = start_;
+    public func start<X>(self : Vector<X>) : Nat = self.start_;
   };
 
-  /// Stable data for a sliding window buffer
-  public type StableData<X> = {
-    old : ?VectorStableData<X>;
-    new : VectorStableData<X>;
-    i_old : Nat;
-    i_new : Nat;
+  public type SlidingWindowBuffer<X> = {
+    var old : ?Vector.Vector<X>;
+    var new : Vector.Vector<X>;
+    var i_old : Nat;
+    var i_new : Nat;
   };
 
-  /// Sliding window buffer
-  ///
-  /// A linear buffer with random access where we can add at end and delete from
-  /// the beginning.  Elements remain at their original position, despite
-  /// deletion, hence the data structure becomes in fact a sliding window into an
-  /// ever-growing buffer.
-  ///
-  /// This data structure consists of a pair of Vectors called `old` and `new`.
-  /// We always add to `new`.  While `old` is empty we delete from `new` but only
-  /// until the waste in `new` exceeds sqrt(n). When `new` has >sqrt(n) waste
-  /// then we rename `new` to `old` and create a fresh empty `new`. Now deletions
-  /// happen from old, until old is empty. Then `old` is discarded and deletions
-  /// happen from `new` again until the waste in `new` exceeds sqrt(n). Then the
-  /// shift starts all over again. Etc.
-  ///
-  /// Only the waste in `new` is limited to sqrt(n). The waste in `old` is not limited.
-  /// Hence, the largest waste occurs if we do n additions first, then n deletions.
-  public class SlidingWindowBuffer<X>() {
-    var old : ?Vector<X> = null;
-    var new : Vector<X> = Vector<X>();
-    var i_old = 0; // offset of old
-    var i_new = 0; // offset of new
-
-    /// Converts the buffer to stable data
-    public func share() : StableData<X> = {
-      old = Option.map(old, func(o : Vector<X>) : VectorStableData<X> = o.share());
-      new = new.share();
-      i_old = i_old;
-      i_new = i_new;
-    };
-
-    /// Restores the buffer from stable data
-    public func unshare(data : StableData<X>) {
-      switch (data.old) {
-        case (null) old := null;
-        case (?o) {
-          let v = Vector<X>();
-          v.unshare(o);
-          old := ?v;
-        };
-      };
-      new.unshare(data.new);
-      i_old := data.i_old;
-      i_new := data.i_new;
-    };
-
-    /// Add an element to the end
-    public func add(x : X) : Nat {
-      new.add(x) + i_new;
-    };
-
-    /// Random access based on absolute (ever-growing) index.
-    /// Returns `null` if the index falls outside the sliding window on either end.
-    public func getOpt(i : Nat) : ?X {
-      if (i >= i_new) {
-        new.getOpt(i - i_new : Nat);
-      } else if (i >= i_old) {
-        let ?vec = old else Prim.trap("old is null in Buffer");
-        vec.getOpt(i - i_old : Nat);
-      } else null;
-    };
-
-    func rotateIfNeeded() {
-      let size = new.size();
-      let s = nat32(size);
-      let d = nat32(new.start());
-      let bits = 32 - leadingZeros(s);
-      let limit = s >> (bits >> 1);
-      if (d > limit) {
-        old := ?new;
-        i_old := i_new;
-        new := Vector<X>();
-        i_new += size;
-      };
-    };
-
-    /// Delete n elements from the beginning.
-    /// Traps if less than n elements are available.
-    public func delete(n : Nat) = deleteTo(start() + n);
-
-    /// Delete elements from the beginning to the given end position (exclusive).
-    public func deleteTo(end_ : Nat) {
-      if (end_ > end()) Prim.trap("index out of bounds in SlidingWindowBuffer.deleteTo");
-      if (end_ >= i_new) {
-        new.deleteTo(end_ - i_new : Nat);
-        rotateIfNeeded();
-        // free old is possible
-        if (end_ >= i_new) {
-          old := null;
-          i_old := i_new;
-        };
-      } else if (end_ >= i_old) {
-        let ?vec = old else Prim.trap("cannot happen");
-        vec.deleteTo(end_ - i_old : Nat);
-      };
-    };
-
-    /// The starting position of the sliding window.
-    /// If the window is non-empty then this equals the index of the first
-    /// element in the window.
-    public func start() : Nat = switch (old) {
-      case (?vec) { i_old + vec.start() };
-      case (null) { i_new + new.start() };
-    };
-
-    /// The ending position (exclusive) of the sliding window
-    /// = the index of the next element that would be added
-    /// = the total number of additions that have ever been made
-    /// = the size of the whole virtual buffer including deletions
-    public func end() : Nat = i_new + new.size();
-
-    /// The length of the window, i.e. the number of elements that are actually
-    /// available to get.
-    public func len() : Nat = end() - start();
+  public func empty<X>() : SlidingWindowBuffer<X> = {
+    var old = null;
+    var new = Vector.new<X>();
+    var i_old = 0;
+    var i_new = 0;
   };
+
+  /// Add an element to the end
+  public func add<X>(self : SlidingWindowBuffer<X>, x : X) : Nat {
+    self.new.add(x) + self.i_new;
+  };
+
+  /// Random access based on absolute (ever-growing) index.
+  /// Returns `null` if the index falls outside the sliding window on either end.
+  public func get<X>(self : SlidingWindowBuffer<X>, i : Nat) : ?X {
+    if (i >= self.i_new) {
+      self.new.getOpt(i - self.i_new : Nat);
+    } else if (i >= self.i_old) {
+      let ?vec = self.old else Prim.trap("old is null in Buffer");
+      vec.getOpt(i - self.i_old : Nat);
+    } else null;
+  };
+
+  /// Random access based on absolute (ever-growing) index.
+  /// Traps if the index falls outside the sliding window on either end.
+  public func at<X>(self : SlidingWindowBuffer<X>, i : Nat) : X {
+    if (i >= self.i_new) {
+      return self.new.at(i - self.i_new : Nat);
+    };
+    let ?vec = self.old else Prim.trap("old is null in SlidingWindowBuffer.at");
+    vec.at(i - self.i_old : Nat);
+  };
+
+  /// Overwrite the element at absolute index `i` with `value`.
+  /// Traps if `i` is outside the sliding window [start(), end()).
+  public func put<X>(self : SlidingWindowBuffer<X>, i : Nat, value : X) {
+    if (i >= end(self)) Prim.trap("index out of bounds in SlidingWindowBuffer.put");
+    if (i < start(self)) Prim.trap("index out of bounds in SlidingWindowBuffer.put");
+    if (i >= self.i_new) {
+      self.new.put(i - self.i_new : Nat, value);
+    } else {
+      let ?vec = self.old else Prim.trap("old is null in SlidingWindowBuffer.put");
+      vec.put(i - self.i_old : Nat, value);
+    };
+  };
+
+  func rotateIfNeeded<X>(self : SlidingWindowBuffer<X>) {
+    let size = self.new.size();
+    let s = nat32(size);
+    let d = nat32(self.new.start());
+    let bits = 32 - leadingZeros(s);
+    let limit = s >> (bits >> 1);
+    if (d > limit) {
+      self.old := ?self.new;
+      self.i_old := self.i_new;
+      self.new := Vector.new<X>();
+      self.i_new += size;
+    };
+  };
+
+  /// Delete n elements from the beginning.
+  /// Traps if less than n elements are available.
+  public func delete<X>(self : SlidingWindowBuffer<X>, n : Nat) = deleteTo(self, start(self) + n);
+
+  /// Delete elements from the beginning to the given end position (exclusive).
+  public func deleteTo<X>(self : SlidingWindowBuffer<X>, end_ : Nat) {
+    if (end_ > end(self)) Prim.trap("index out of bounds in SlidingWindowBuffer.deleteTo");
+    if (end_ >= self.i_new) {
+      self.new.deleteTo(end_ - self.i_new : Nat);
+      rotateIfNeeded(self);
+      // free old is possible
+      if (end_ >= self.i_new) {
+        self.old := null;
+        self.i_old := self.i_new;
+      };
+    } else if (end_ >= self.i_old) {
+      let ?vec = self.old else Prim.trap("cannot happen");
+      vec.deleteTo(end_ - self.i_old : Nat);
+    };
+  };
+
+  /// The starting position of the sliding window.
+  /// If the window is non-empty then this equals the index of the first
+  /// element in the window.
+  public func start<X>(self : SlidingWindowBuffer<X>) : Nat = switch (self.old) {
+    case (?vec) { self.i_old + vec.start() };
+    case (null) { self.i_new + self.new.start() };
+  };
+
+  /// The ending position (exclusive) of the sliding window
+  /// = the index of the next element that would be added
+  /// = the total number of additions that have ever been made
+  /// = the size of the whole virtual buffer including deletions
+  public func end<X>(self : SlidingWindowBuffer<X>) : Nat = self.i_new + self.new.size();
+
+  /// The size of the window, i.e. the number of elements that are actually
+  /// available to get.
+  public func size<X>(self : SlidingWindowBuffer<X>) : Nat = end(self) - start(self);
+
+  /// Returns `true` if the window contains no elements.
+  public func isEmpty<X>(self : SlidingWindowBuffer<X>) : Bool = end(self) == start(self);
 };

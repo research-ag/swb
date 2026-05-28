@@ -1,24 +1,34 @@
 # Swb changelog
 
+## 2.0.0
+
+- Converted API from class-based to static module (record type). SWB is now directly stable.
+- Constructor `SlidingWindowBuffer<X>()` becomes function `empty<X>()`.
+- Support for dot-notation.
+- Renamed `getOpt` → `get`.
+- Renamed `len` → `size`.
+- Removed `share()` / `unshare()`.
+- Added `at(buf, i) : X` — like `get`, but traps if `i` is outside `[start, end)`.
+- Added `put(buf, i, value)` — overwrite the element at absolute index `i`; traps if `i` is outside `[start, end)`.
+- Added `isEmpty(buf) : Bool`.
+
 ## 1.2.3
 
-### Changed
-
-- Updated `core` from `2.0.0` to `2.5.0`.
-- Updated `[requirements] moc` from `0.15.0` to `1.6.0`.
+- Bump `core` dependency to `2.5.0`
+- Require `moc 1.6.0`
 
 ## 1.2.2
 
-- remove dev-dependency
+- Remove dev-dependency
 
 ## 1.2.1
 
-- switch base dependency to core
+- Switch base dependency to core
 
 ## 1.2.0
 
-- bump all dependencies
-- base dependency is 0.11.1
+- Bump all dependencies
+- Base dependency is 0.11.1
 
 ## 1.1.1
 
