@@ -21,8 +21,8 @@ module {
     let listDel = List.empty<Nat>();
     var i = 0;
     while (i < PREFILL) {
-      ignore SWB.add(swbDel, i);
-      List.add(listDel, i);
+      ignore swbDel.add(i);
+      listDel.add(i);
       i += 1;
     };
 
@@ -30,8 +30,8 @@ module {
     let listGet = List.empty<Nat>();
     var j = 0;
     while (j < BATCH) {
-      ignore SWB.add(swbGet, j);
-      List.add(listGet, j);
+      ignore swbGet.add(j);
+      listGet.add(j);
       j += 1;
     };
 
@@ -39,41 +39,41 @@ module {
       [
         func() {
           var k = 0;
-          while (k < BATCH) { ignore SWB.add(swbAdd, k); k += 1 };
+          while (k < BATCH) { ignore swbAdd.add(k); k += 1 };
         },
         func() {
           var k = 0;
-          while (k < BATCH) { List.add(listAdd, k); k += 1 };
-        },
-      ],
-      [
-        func() {
-          var k = 0;
-          while (k < BATCH) { SWB.delete(swbDel, 1); k += 1 };
-        },
-        func() {
-          var k = 0;
-          while (k < BATCH) { ignore List.removeLast(listDel); k += 1 };
+          while (k < BATCH) { listAdd.add(k); k += 1 };
         },
       ],
       [
         func() {
           var k = 0;
-          while (k < BATCH) { ignore SWB.get(swbGet, k); k += 1 };
+          while (k < BATCH) { swbDel.delete(1); k += 1 };
         },
         func() {
           var k = 0;
-          while (k < BATCH) { ignore List.get(listGet, k); k += 1 };
+          while (k < BATCH) { ignore listDel.removeLast(); k += 1 };
         },
       ],
       [
         func() {
           var k = 0;
-          while (k < BATCH) { ignore SWB.at(swbGet, k); k += 1 };
+          while (k < BATCH) { ignore swbGet.get(k); k += 1 };
         },
         func() {
           var k = 0;
-          while (k < BATCH) { ignore List.at(listGet, k); k += 1 };
+          while (k < BATCH) { ignore listGet.get(k); k += 1 };
+        },
+      ],
+      [
+        func() {
+          var k = 0;
+          while (k < BATCH) { ignore swbGet.at(k); k += 1 };
+        },
+        func() {
+          var k = 0;
+          while (k < BATCH) { ignore listGet.at(k); k += 1 };
         },
       ],
     ];
