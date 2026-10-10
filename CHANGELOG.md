@@ -1,5 +1,10 @@
 # Swb changelog
 
+## 2.0.2
+
+- Bumped `core` dependency from `2.5.0` to `2.6.2`.
+- Replaced deprecated `Nat32.fromNat` with `Nat.toNat32`.
+
 ## 2.0.1
 
 - Complete documentation

@@ -21,7 +21,8 @@
 /// Contributors: Andy Gura (AndyGura), Andrii Stepanov (AStepanov25)
 
 import Prim "mo:prim";
-import { bitcountLeadingZero = leadingZeros; fromNat = nat32; toNat = nat } "mo:core/Nat32";
+import { bitcountLeadingZero = leadingZeros; toNat = nat } "mo:core/Nat32";
+import { toNat32 = nat32 } "mo:core/Nat";
 import VarArray "mo:core/VarArray";
 
 module {

@@ -1,19 +1,23 @@
 [package]
 name = "swb"
-version = "2.0.1"
+version = "2.0.2"
 description = "Sliding window buffer with random access"
 repository = "https://github.com/research-ag/swb"
 keywords = [ "buffer", "sliding", "window", "queue" ]
 license = "Apache-2.0"
 
 [dependencies]
-core = "2.5.0"
+core = "2.6.2"
 
 [requirements]
 moc = "1.0.0"
 
 [toolchain]
-moc = "1.8.2"
+moc = "2.0.0"
+pocket-ic = "16.1.0"
+wasm-opt = "133"
 
 [dev-dependencies]
 bench-helper = "0.0.3"
+
+[optimize]
